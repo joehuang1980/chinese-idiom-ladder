@@ -8,7 +8,7 @@
 2. **第一關－拖拉填空**：把詞語卡拖到釋義中的空格（iPad 可「點詞卡 → 點空格」）。
 3. **第二關－重組釋義**：把打散的釋義片段排回正確順序。
 4. **第三關－情境運用**：閱讀情境例句，選出最適合的成語。
-5. **成果頁**：顯示金幣、星星、等級與錯題紀錄。
+5. **成果頁**：顯示金幣、星星、等級與錯題紀錄，並自動儲存成果、產生「成果代碼」。
 
 目前收錄：
 
@@ -26,6 +26,59 @@
 3. **Branch** 選擇放有 `index.html` 的分支，資料夾選 `/ (root)`，按 **Save**。
 4. 約一分鐘後，網站會出現在：
    `https://joehuang1980.github.io/chinese-idiom-ladder/`
+
+## 教師專區：檢查學習成果
+
+首頁按 **👩‍🏫 教師專區** 進入。第一次使用時要設定教師密碼（至少 4 碼），之後每次進入都需要輸入。
+
+教師專區可以：
+
+- 依 **年級／學期、課次、學生姓名** 篩選紀錄。
+- 看到每筆紀錄的完成時間、星星、**一次答對率**、錯誤次數、等級，按「錯題」可展開錯題明細。
+- 看到 **最常錯的成語** 排行（前 10 名），以及錯在哪一關。
+- **匯出 Excel（CSV）**：匯出目前篩選到的紀錄，可用 Excel 或 Google 試算表開啟。
+- **匯入成果代碼**、刪除單筆紀錄、清除全部紀錄、修改密碼。
+
+### 成果存在哪裡？
+
+這個網站沒有後端伺服器，成果存在**學生完成課程那台裝置的瀏覽器**裡：
+
+- **全班共用同一台電腦／iPad**：老師直接在那台裝置打開教師專區即可看到所有人的紀錄。
+- **學生用各自的裝置**：學生完成後在成果頁按「📋 複製成果代碼」，貼給老師（Google Classroom、LINE 等）。老師把代碼貼到教師專區的「匯入成果代碼」，一次可以貼很多個，重複的會自動略過。
+
+注意：
+
+- 清除瀏覽器資料或使用「無痕模式」會讓紀錄消失，請定期匯出 CSV 備份。
+- 教師密碼只是防止學生誤入，存放在瀏覽器中，並不是嚴格的資安保護。
+
+### （選用）自動匯集到 Google 試算表
+
+如果希望每位學生完成後，成果自動送到老師的 Google 試算表：
+
+1. 新增一份 Google 試算表，選 **擴充功能 → Apps Script**，貼上以下程式並儲存：
+
+   ```js
+   function doPost(e) {
+     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+     const r = JSON.parse(e.postData.contents);
+     const safe = v => { v = String(v ?? ''); return /^[=+\-@]/.test(v) ? "'" + v : v; };
+     if (sheet.getLastRow() === 0) {
+       sheet.appendRow(['完成時間', '測驗日期', '學生', '年級學期', '課次', '金幣', '星星', '滿分星星', '一次答對率', '錯誤次數', '等級', '錯題明細']);
+     }
+     sheet.appendRow([
+       new Date(r.finishedAt), safe(r.date), safe(r.student), safe(r.grade), safe(r.lesson),
+       r.coins, r.stars, r.max, r.max ? Math.round(r.stars / r.max * 100) + '%' : '',
+       (r.mistakes || []).length, safe(r.level),
+       safe((r.mistakes || []).map(m => m.stage + '｜' + m.word + '｜' + m.detail).join('；'))
+     ]);
+     return ContentService.createTextOutput('ok');
+   }
+   ```
+
+2. 按 **部署 → 新增部署作業**，類型選 **網頁應用程式**，「執行身分」選自己，「誰可以存取」選 **所有人**，按部署並複製網址。
+3. 在 `index.html` 中找到 `const SHEET_URL='';`，把網址貼進引號中，例如：
+   `const SHEET_URL='https://script.google.com/macros/s/xxxx/exec';`
+4. 儲存並推送到 GitHub，之後學生完成課程時成果就會自動新增到試算表。
 
 ## 本機使用
 
