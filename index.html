@@ -173,7 +173,7 @@ function reward(){mode='done';prog();let max=data.length*3,level=stars>=Math.cei
 // ===== 學習成果紀錄與教師專區 =====
 const STORE_KEY='idiomLadderRecords',PIN_KEY='idiomLadderTeacherPin';
 // 選填：老師的 Google 試算表 Apps Script 網址（設定方式見 README）。留空則成果只存在各裝置。
-const SHEET_URL='';
+const SHEET_URL='https://script.google.com/macros/s/AKfycbwEyCgddCZBQ_6wH2h6SxpUi9ZHHUyjeCrYK6kea1jtlVlL9zYSy_-icuy3r4dALQic/exec';
 function loadRecords(){try{let r=JSON.parse(localStorage.getItem(STORE_KEY)||'[]');return Array.isArray(r)?r.map(cleanRecord).filter(Boolean):[]}catch(e){return[]}}
 function saveRecords(r){try{localStorage.setItem(STORE_KEY,JSON.stringify(r));return true}catch(e){return false}}
 function getPin(){try{return localStorage.getItem(PIN_KEY)||''}catch(e){return''}}
