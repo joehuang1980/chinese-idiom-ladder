@@ -51,34 +51,53 @@
 - 清除瀏覽器資料或使用「無痕模式」會讓紀錄消失，請定期匯出 CSV 備份。
 - 教師密碼只是防止學生誤入，存放在瀏覽器中，並不是嚴格的資安保護。
 
-### （選用）自動匯集到 Google 試算表
+### 自動上傳到 Google 試算表
 
-如果希望每位學生完成後，成果自動送到老師的 Google 試算表：
+設定好之後，學生完成課程時，成果會自動新增一列到老師的 Google 試算表：
+
+- 成果頁會顯示上傳狀態（上傳中／已上傳／無法上傳）。
+- 上傳失敗（例如沒有網路）時，成果會先保存在那台裝置，下次開啟網站或恢復連線時自動重新上傳，也可以按「重新上傳」。
+- 每筆紀錄都有「紀錄ID」，重新上傳時試算表會自動略過已存在的紀錄，不會重複。
+
+設定步驟：
 
 1. 新增一份 Google 試算表，選 **擴充功能 → Apps Script**，貼上以下程式並儲存：
 
    ```js
+   const HEAD = ['完成時間', '測驗日期', '學生', '年級學期', '課次', '金幣', '星星', '滿分星星', '一次答對率', '錯誤次數', '等級', '錯題明細', '紀錄ID'];
+
    function doPost(e) {
-     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-     const r = JSON.parse(e.postData.contents);
-     const safe = v => { v = String(v ?? ''); return /^[=+\-@]/.test(v) ? "'" + v : v; };
-     if (sheet.getLastRow() === 0) {
-       sheet.appendRow(['完成時間', '測驗日期', '學生', '年級學期', '課次', '金幣', '星星', '滿分星星', '一次答對率', '錯誤次數', '等級', '錯題明細']);
+     const lock = LockService.getScriptLock();
+     lock.waitLock(20000);
+     try {
+       const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+       const r = JSON.parse(e.postData.contents);
+       const safe = v => { v = String(v ?? ''); return /^[=+\-@]/.test(v) ? "'" + v : v; };
+       if (sheet.getLastRow() === 0) sheet.appendRow(HEAD);
+       if (sheet.getRange(1, HEAD.length).getValue() === '') sheet.getRange(1, HEAD.length).setValue('紀錄ID');
+       const last = sheet.getLastRow();
+       const ids = last > 1 ? sheet.getRange(2, HEAD.length, last - 1, 1).getValues().map(x => String(x[0])) : [];
+       if (r.id && ids.includes(String(r.id))) return ContentService.createTextOutput('ok');
+       sheet.appendRow([
+         new Date(r.finishedAt), safe(r.date), safe(r.student), safe(r.grade), safe(r.lesson),
+         r.coins, r.stars, r.max, r.max ? Math.round(r.stars / r.max * 100) + '%' : '',
+         (r.mistakes || []).length, safe(r.level),
+         safe((r.mistakes || []).map(m => m.stage + '｜' + m.word + '｜' + m.detail).join('；')),
+         safe(r.id)
+       ]);
+       return ContentService.createTextOutput('ok');
+     } finally {
+       lock.releaseLock();
      }
-     sheet.appendRow([
-       new Date(r.finishedAt), safe(r.date), safe(r.student), safe(r.grade), safe(r.lesson),
-       r.coins, r.stars, r.max, r.max ? Math.round(r.stars / r.max * 100) + '%' : '',
-       (r.mistakes || []).length, safe(r.level),
-       safe((r.mistakes || []).map(m => m.stage + '｜' + m.word + '｜' + m.detail).join('；'))
-     ]);
-     return ContentService.createTextOutput('ok');
    }
    ```
 
 2. 按 **部署 → 新增部署作業**，類型選 **網頁應用程式**，「執行身分」選自己，「誰可以存取」選 **所有人**，按部署並複製網址。
-3. 在 `index.html` 中找到 `const SHEET_URL='';`，把網址貼進引號中，例如：
+3. 在 `index.html` 中找到 `const SHEET_URL=`，把網址貼進引號中，例如：
    `const SHEET_URL='https://script.google.com/macros/s/xxxx/exec';`
 4. 儲存並推送到 GitHub，之後學生完成課程時成果就會自動新增到試算表。
+
+**已經用舊版程式設定過的話**：把 Apps Script 換成上面的新程式並儲存，再到 **部署 → 管理部署作業**，按鉛筆圖示編輯，「版本」選 **新版本** 後按部署。這樣網址不會改變，不用修改 `index.html`。新程式會在原本的表格最後加上「紀錄ID」欄。
 
 ## 本機使用
 
