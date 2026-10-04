@@ -169,7 +169,7 @@ function pickExample(d,k){
   return{q:qs[idx],idx}
 }
 function example(){prog();wrongThis=false;let d=data[i],ex=pickExample(d,i),opts=shuffle(data.map(x=>x.w));card.innerHTML=`<h2>第三關：情境例句選成語</h2><div class="meaning"><b>情境：</b>${esc(ex.q)}</div><div class="center"><button class="speak" id="sayQ">🔊 朗讀題目</button></div><div class="center">${opts.map(x=>`<button class="choice" data-x="${x}">${x}</button>`).join('')}<div class="msg"></div><div class="hint hidden">💡 提示：回想每個成語的意思，再判斷最符合描述的是哪一個。</div></div>`;sayQ.onclick=()=>speak(ex.q);document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{if(b.dataset.x===d.w){b.classList.add('correct');document.querySelector('.msg').textContent=wrongThis?'選對了！修正成功！ +10 金幣':'一次選對！ +10 金幣、+1 星星';document.querySelectorAll('.choice').forEach(x=>x.disabled=true);earn();setTimeout(()=>{if(++i<data.length)example();else reward()},800)}else{b.disabled=true;b.classList.add('wrong');miss('第三關',d,`情境題（例句${ex.idx+1}）選錯：`+b.dataset.x);document.querySelector('.msg').textContent='這個成語和描述不太符合，再想想！';document.querySelector('.hint').classList.remove('hidden')}})}
-function reward(){mode='done';prog();let max=data.length*3,level=stars>=Math.ceil(max*.85)?'成語小博士':stars>=Math.ceil(max*.65)?'成語高手':'努力學習家';let result={id:newId(),student,date:testDate,grade,lesson,coins,stars,max,level,finishedAt:new Date().toISOString(),mistakes:mistakes.map(m=>({...m}))},saved=addRecords([result])>0,code=encodeRecord(result);sendToSheet(result);let recHtml=mistakes.length?mistakes.map((m,k)=>`<div class="record"><b>${k+1}. ${m.stage}｜${m.word}</b><br>${esc(m.detail)}</div>`).join(''):'<div class="record">🎉 本次沒有錯題紀錄！</div>';card.innerHTML=`<h1>恭喜完成${lesson}！</h1><div class="reward">🏆</div><h2 class="center">${esc(student)}：${level}</h2><div class="courseTitle">${grade}・${lesson}</div><div class="score"><span>📅 ${testDate}</span><span>🪙 ${coins} 金幣</span><span>⭐ ${stars}/${max} 星星</span></div><p class="center">你完成了「找回詞語 → 重組釋義 → 情境運用」三道關卡。</p><h2>錯題紀錄</h2>${recHtml}<h2>交給老師</h2><div class="record">${saved?'✅ 成果已自動儲存在這台裝置，老師可從首頁的「教師專區」查看。':'⚠️ 這台裝置無法儲存紀錄，請把下方成果代碼交給老師。'}${SHEET_URL?'<br>☁️ 成果也會同步送到老師的 Google 試算表。':''}<br>使用自己的裝置時，請按「複製成果代碼」，再貼給老師（例如 Google Classroom、LINE）。</div><textarea id="resultCode" class="codeBox" readonly>${code}</textarea><div class="center"><button class="speak" id="copyCode">📋 複製成果代碼</button></div><div class="center"><button class="speak" id="review">🔊 朗讀本課成語</button><button class="primary" id="again">本課再玩一次</button><button class="home" id="home">選擇其他課程</button></div>`;review.onclick=()=>speak(data.map(x=>x.w).join('。'));again.onclick=()=>{i=0;coins=0;stars=0;mistakes=[];updateScore();mode='learn';learn()};home.onclick=setup;document.querySelector('#copyCode').onclick=e=>copyCode(e.target)}
+function reward(){mode='done';prog();let max=data.length*3,level=stars>=Math.ceil(max*.85)?'成語小博士':stars>=Math.ceil(max*.65)?'成語高手':'努力學習家';let result={id:newId(),student,date:testDate,grade,lesson,coins,stars,max,level,finishedAt:new Date().toISOString(),mistakes:mistakes.map(m=>({...m}))},saved=addRecords([result])>0,code=encodeRecord(result);let recHtml=mistakes.length?mistakes.map((m,k)=>`<div class="record"><b>${k+1}. ${m.stage}｜${m.word}</b><br>${esc(m.detail)}</div>`).join(''):'<div class="record">🎉 本次沒有錯題紀錄！</div>';card.innerHTML=`<h1>恭喜完成${lesson}！</h1><div class="reward">🏆</div><h2 class="center">${esc(student)}：${level}</h2><div class="courseTitle">${grade}・${lesson}</div><div class="score"><span>📅 ${testDate}</span><span>🪙 ${coins} 金幣</span><span>⭐ ${stars}/${max} 星星</span></div><p class="center">你完成了「找回詞語 → 重組釋義 → 情境運用」三道關卡。</p><h2>錯題紀錄</h2>${recHtml}<h2>交給老師</h2><div class="record">${saved?'✅ 成果已自動儲存在這台裝置，老師可從首頁的「教師專區」查看。':'⚠️ 這台裝置無法儲存紀錄，請把下方成果代碼交給老師。'}<br>使用自己的裝置時，請按「複製成果代碼」，再貼給老師（例如 Google Classroom、LINE）。</div>${SHEET_URL?'<div class="record" id="sheetStatus"></div>':''}<textarea id="resultCode" class="codeBox" readonly>${code}</textarea><div class="center"><button class="speak" id="copyCode">📋 複製成果代碼</button></div><div class="center"><button class="speak" id="review">🔊 朗讀本課成語</button><button class="primary" id="again">本課再玩一次</button><button class="home" id="home">選擇其他課程</button></div>`;review.onclick=()=>speak(data.map(x=>x.w).join('。'));again.onclick=()=>{i=0;coins=0;stars=0;mistakes=[];updateScore();mode='learn';learn()};home.onclick=setup;document.querySelector('#copyCode').onclick=e=>copyCode(e.target);showUpload(result)}
 // ===== 學習成果紀錄與教師專區 =====
 const STORE_KEY='idiomLadderRecords',PIN_KEY='idiomLadderTeacherPin';
 // 選填：老師的 Google 試算表 Apps Script 網址（設定方式見 README）。留空則成果只存在各裝置。
@@ -188,7 +188,33 @@ function cleanRecord(r){
 function addRecords(list){let all=loadRecords(),ids=new Set(all.map(r=>r.id)),added=0;list.forEach(r=>{r=cleanRecord(r);if(r&&!ids.has(r.id)){all.push(r);ids.add(r.id);added++}});return saveRecords(all)?added:0}
 function encodeRecord(r){let s='';new TextEncoder().encode(JSON.stringify(r)).forEach(b=>s+=String.fromCharCode(b));return'IDL1:'+btoa(s)}
 function decodeCodes(text){return(text.match(/IDL1:[A-Za-z0-9+/=]+/g)||[]).map(c=>{try{return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(c.slice(5)),ch=>ch.charCodeAt(0))))}catch(e){return null}}).filter(Boolean)}
-function sendToSheet(r){if(!SHEET_URL)return;try{fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(r)}).catch(()=>{})}catch(e){}}
+// 上傳到老師的 Google 試算表：成功與否會顯示在成果頁；失敗的紀錄先存在這台裝置，下次開啟網站或恢復連線時自動重送。
+const PENDING_KEY='idiomLadderPendingUploads';
+function loadPending(){try{let a=JSON.parse(localStorage.getItem(PENDING_KEY)||'[]');return Array.isArray(a)?a.map(cleanRecord).filter(Boolean):[]}catch(e){return[]}}
+function savePending(a){try{localStorage.setItem(PENDING_KEY,JSON.stringify(a))}catch(e){}}
+function queuePending(r){let p=loadPending();if(!p.some(x=>x.id===r.id)){p.push(r);savePending(p)}}
+async function postToSheet(r){
+  let res=await fetch(SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(r)}),t=await res.text();
+  // Apps Script 出錯時會回傳 HTML 錯誤頁面，視為失敗
+  if(!res.ok||/<html|<!doctype/i.test(t))throw new Error('upload failed')
+}
+async function uploadResult(r){
+  if(!SHEET_URL)return'off';
+  try{await postToSheet(r);savePending(loadPending().filter(x=>x.id!==r.id));return'ok'}catch(e){queuePending(r);return'fail'}
+}
+let retrying=false;
+async function retryPending(){
+  if(!SHEET_URL||retrying)return;retrying=true;
+  try{for(const r of loadPending()){try{await postToSheet(r);savePending(loadPending().filter(x=>x.id!==r.id))}catch(e){break}}}finally{retrying=false}
+}
+function showUpload(r){
+  let el=document.querySelector('#sheetStatus');if(!el)return;
+  el.innerHTML='☁️ 正在上傳到老師的 Google 試算表…';
+  uploadResult(r).then(st=>{if(!document.body.contains(el))return;
+    if(st==='ok')el.innerHTML='✅ 成果已上傳到老師的 Google 試算表。';
+    else{el.innerHTML='⚠️ 目前無法上傳到老師的試算表（可能沒有網路）。成果已保存，下次開啟網站時會自動重新上傳。 <button class="mini" id="retryUpload">重新上傳</button>';
+      document.querySelector('#retryUpload').onclick=()=>showUpload(r)}})
+}
 function copyCode(btn){let box=document.querySelector('#resultCode'),ok=()=>{btn.textContent='✅ 已複製，請貼給老師'};
   function fallback(){box.focus();box.select();box.setSelectionRange(0,box.value.length);try{if(document.execCommand('copy'))return ok()}catch(e){}alert('請長按代碼，選擇「全選」→「拷貝」')}
   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(box.value).then(ok,fallback);else fallback()}
@@ -249,4 +275,4 @@ function exportCsv(){
   let url=URL.createObjectURL(new Blob(['﻿'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');
   a.href=url;a.download=`idiom-results_${new Date().toLocaleDateString('en-CA')}.csv`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)
 }
-const badge=document.querySelector('#badge'),stepLabel=document.querySelector('#stepLabel'),bar=document.querySelector('#bar'),coinsEl=document.querySelector('#coins'),starsEl=document.querySelector('#starsCount'),studentBadge=document.querySelector('#studentBadge');setup();</script></body></html>
+const badge=document.querySelector('#badge'),stepLabel=document.querySelector('#stepLabel'),bar=document.querySelector('#bar'),coinsEl=document.querySelector('#coins'),starsEl=document.querySelector('#starsCount'),studentBadge=document.querySelector('#studentBadge');setup();retryPending();window.addEventListener('online',retryPending);</script></body></html>
