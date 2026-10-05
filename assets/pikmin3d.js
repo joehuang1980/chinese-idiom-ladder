@@ -93,7 +93,7 @@
     root.userData.wings=wings;
     // 裝備位置：帽子戴在頭頂偏後（前上方是大眼睛）；腮紅、嘴巴在眼睛下方；脖子在頭和身體交接處
     root.userData.anchors={hat:{p:V(0,.3,-.1),s:.95,rx:-.38},eyes:E,eyeR:.2,eyeD:.13,face:[head],cheeks:[[.31,-.06],[-.31,-.06]],mouth:[0,-.12],
-      wrap:{c:V(0,0,0),z:.02,mesh:[head],t:.11},clamp:{x:.41,y:-.07,d:.94,top:.39},trunk:[head,bodyM],neckY:-.43,body:[-.43,-.8],hand:{p:V(.31,-.7,.08),s:.75,rx:.6},leaf:{obj:bud,p:tip,tan,s:1},back:{y0:-.4,y1:-.9,r1:.1,s:.85}};
+      wrap:{c:V(0,0,0),z:.02,mesh:[head],t:.11},clamp:{x:.22,y:-.63,up:-1,d:.6},trunk:[head,bodyM],neckY:-.43,body:[-.43,-.8],hand:{p:V(.31,-.7,.08),s:.75,rx:.6},leaf:{obj:bud,p:tip,tan,s:1},back:{y0:-.4,y1:-.9,r1:.1,s:.85}};
     return root;
   }
 
@@ -156,7 +156,7 @@
       [[-.1,.09],[0,.12],[.1,.08]].forEach(([dx,dz])=>root.add(limb(ft,[ft[0]+dx,ft[1]-.04,ft[2]+dz],.025,ym)));
     });
     root.userData.anchors={hat:{p:V(0,.33,0),s:1.05,rx:0},eyes:E,eyeR:.11,eyeD:.135,face:[trunk],cheeks:[[.29,-.12],[-.29,-.12]],mouth:[0,-.16],
-      wrap:{c:V(0,-.02,0),z:.04,rx:.5,ry:.53,t:.11},clamp:{x:.3,y:.08,d:1,top:.5},trunk:[trunk],neckY:-.64,body:[-.6,-1.27],hand:{p:V(.64,-1.15,.02),s:1,rx:.2},leaf:{obj:bud,p:tip,tan,s:1.75},back:{y0:-.62,y1:-1.5,r1:.14,s:1}};
+      wrap:{c:V(0,-.02,0),z:.04,rx:.5,ry:.53,t:.11},clamp:{x:.29,y:-1.0,edge:-.9,up:1,d:.78},trunk:[trunk],neckY:-.64,body:[-.6,-1.27],hand:{p:V(.64,-1.15,.02),s:1,rx:.2},leaf:{obj:bud,p:tip,tan,s:1.75},back:{y0:-.62,y1:-1.5,r1:.14,s:1}};
     return root;
   }
 
@@ -222,7 +222,7 @@
     });
     // 岩石沒有脖子：脖子類裝備圍在眼睛下方，衣服包住岩石中下段
     root.userData.anchors={hat:{p:V(0,top-.05,0),s:.8,rx:0},eyes:E,eyeR:.069,eyeD:.088,face:[rock],cheeks:[[.27,top-.27*H],[-.27,top-.27*H]],mouth:[0,top-.29*H],
-      wrap:{c:V(0,(top+box.min.y)/2,0),z:.06,mesh:[rock],t:.16,z:.02},clamp:{x:.25,y:top-.4*H,d:.82,top},trunk:[rock],neckY:top-.38*H,body:[top-.42*H,box.min.y+.1*H],hand:{p:V(.58,ay-.2,.06),s:.75,rx:.2},leaf:{obj:bud,p:tip,tan,s:.75},back:{y0:top-.3*H,y1:box.min.y-.08,r1:.12,s:.78}};
+      wrap:{c:V(0,(top+box.min.y)/2,0),z:.06,mesh:[rock],t:.16,z:.02},clamp:{x:.25,y:top-.4*H,edge:top,up:1,d:.82,head:true},trunk:[rock],neckY:top-.38*H,body:[top-.42*H,box.min.y+.1*H],hand:{p:V(.58,ay-.2,.06),s:.75,rx:.2},leaf:{obj:bud,p:tip,tan,s:.75},back:{y0:top-.3*H,y1:box.min.y-.08,r1:.12,s:.78}};
     return root;
   }
   /* 3D 裝備：顏色與造型對照商店的平面圖示。每隻皮克敏在 userData.anchors 記錄裝備位置，
@@ -343,12 +343,16 @@
     [-1,1].forEach(k=>{const eg=uvScale(new T.SphereGeometry(1,24,16),3,3);eg.scale(W.t*1.5,W.t*3,W.t*.32);eg.translate(0,W.t*2.7,0);
       const ear=new T.Mesh(eg,m);ear.position.copy(top);ear.rotation.set(-.2,k*.3,-k*.85);G.add(ear)});
   }
-  // 綠色大夾子（G 型夾）：從頭的一側前後夾住，弧形框架跨過頭頂，前面是銀色螺絲和 T 形把手
+  // 綠色大夾子（G 型夾）：在側邊前後夾住，弧形框架跨過邊緣，前面是銀色螺絲和 T 形把手。
+  // 岩石皮克敏夾在頭頂一側；黃皮克敏夾在身體側邊（手臂從夾子中間穿出、框架在頭的下方）；
+  // 羽翅皮克敏的頭比身體大很多，改成倒過來夾在身體外下側（在手和腳之間）。都不會碰到頭和眼睛
   function clamp(A,G){
-    const C=A.clamp,ms=A.face,hit=(o,d)=>{ray.set(o,d);const h=ray.intersectObjects(ms,false)[0];return h&&h.point};
-    const f=hit(V(C.x,C.y,3),V(0,0,-1)),b=hit(V(C.x,C.y,-3),V(0,0,1));if(!f||!b)return;
+    const C=A.clamp,ms=C.head?A.face:A.trunk,hit=(o,d)=>{ray.set(o,d);const h=ray.intersectObjects(ms,false)[0];return h&&h.point};
+    const px=C.x,py=C.y,f=hit(V(px,py,3),V(0,0,-1)),b=hit(V(px,py,-3),V(0,0,1));if(!f||!b)return;
+    let edge=C.edge;if(edge==null){const e=hit(V(px,py+C.up*4,(f.z+b.z)/2),V(0,-C.up,0));if(!e)return;edge=e.y}
+    const reach=(edge-py)*C.up,rot=C.up>0?-.08:Math.PI+.1;
     const D=f.z-b.z,zc=(f.z+b.z)/2,d=C.d;
-    const w=.23*d,bk=-D/2-.12*d-w/2,fr=D/2+.15*d+w/2,it=C.top-C.y+.2*d,ro=w*.9,ri=w*.35,y0=-.05*d,y1=-.2*d;
+    const w=.23*d,bk=-D/2-.12*d-w/2,fr=D/2+.15*d+w/2,it=reach+.2*d,ro=w*.9,ri=w*.35,y0=-.05*d,y1=-.2*d;
     // 框架：∩ 形的輪廓（u = 前後，v = 上下，以螺絲高度為 0）
     const band=(bw)=>{const s=new T.Shape(),L=bk-bw/2,R=fr+bw/2,Li=bk+bw/2,Ri=fr-bw/2,Tp=it+(w+bw)/2,Ti=it+(w-bw)/2,ro2=Math.min(ro,bw*1.8),ri2=ri;
       s.moveTo(L,y0);s.lineTo(L,Tp-ro2);s.quadraticCurveTo(L,Tp,L+ro2,Tp);s.lineTo(R-ro2,Tp);s.quadraticCurveTo(R,Tp,R,Tp-ro2);s.lineTo(R,y1);
@@ -366,7 +370,7 @@
     const hb=new T.Mesh(new T.CylinderGeometry(w*.16,w*.16,w*.3,20),sm);hb.position.set(0,0,sOut);g.add(hb);
     g.add(limb([0,-w*1.1,sOut],[0,w*1.9,sOut],w*.075,sm));
     [[-w*1.1],[w*1.9]].forEach(([v])=>{const cap=new T.Mesh(new T.CylinderGeometry(w*.11,w*.11,w*.22,16),sm);cap.position.set(0,v,sOut);g.add(cap)});
-    g.position.set(C.x+.01,C.y,zc);g.rotation.z=-.08;G.add(g);
+    g.position.set(px+.01,py,zc);g.rotation.z=rot;G.add(g);
   }
   function addOutfit(root,outfit){
     const A=root.userData.anchors;if(!A)return;
