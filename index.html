@@ -487,7 +487,7 @@ function pikminRoom(name){
   let w=pkWallet(name);
   if(!w.type||!PK_CHOICES.includes(w.type))return pikminChoose(name);
   let bal=pkBalance(w);
-  card.innerHTML=`<h1>🌱 ${esc(name)}的皮克敏</h1><div class="dress-wrap"><div><div class="bubble" id="pkBubble">${w.owned.length?'今天要穿什麼呢？':'用學習得到的金幣，幫我買第一件裝備吧！'}</div><div class="mascot-stage" id="pkStage">${pkSVG(w.type,w.outfit,w.owned)}</div><p class="small center" id="pkTip">點一下皮克敏，牠會跳起來跟你說話！</p><div class="center">${PK_3D.includes(w.type)?`<button class="speak" id="pk3dBtn">${pkView3D?'👕 換裝模式':'🧊 3D 模式'}</button>`:''}<button class="speak" id="pkChange">🔄 換一隻皮克敏</button><button class="speak" id="pkUndress">全部脫下</button></div></div>
+  card.innerHTML=`<h1>🌱 ${esc(name)}的皮克敏</h1><div class="dress-wrap"><div><div class="bubble" id="pkBubble">${w.owned.length?'今天要穿什麼呢？':'用學習得到的金幣，幫我買第一件裝備吧！'}</div><div class="mascot-stage" id="pkStage">${pkSVG(w.type,w.outfit,w.owned)}</div><p class="small center" id="pkTip">點一下皮克敏，牠會跳起來跟你說話！</p><div class="center">${PK_3D.includes(w.type)?`<button class="speak" id="pk3dBtn">${pkView3D?'🖼️ 平面圖':'🧊 3D 模式'}</button>`:''}<button class="speak" id="pkChange">🔄 換一隻皮克敏</button><button class="speak" id="pkUndress">全部脫下</button></div></div>
   <div><div class="wallet">🪙 可用金幣 <b>${bal}</b> 枚<span class="small">（累積得到 ${+w.earned||0} 枚・已花 ${+w.spent||0} 枚）</span></div><p class="small">完成一課就能得到金幣。點一下已擁有的裝備可以穿上或脫下，同一個部位只能穿一件。</p>
   <div class="item-grid">${PK_ITEMS.map(it=>{let own=w.owned.includes(it.id),on=own&&w.outfit[it.slot]===it.id,can=bal>=it.price;
     return `<button class="item-card ${on?'on':''} ${!own&&!can?'locked':''}" data-item="${it.id}"><span class="item-icon">${it.icon}</span><span class="item-name">${it.name}</span><span class="small">${PK_SLOT_NAME[it.slot]}</span>${own?`<span class="tag ${on?'tagOn':''}">${on?'穿戴中':'已擁有'}</span>`:`<span class="price">🪙 ${it.price}</span>${can?'':`<span class="small">還差 ${it.price-bal} 枚</span>`}`}</button>`}).join('')}</div></div></div>
@@ -496,7 +496,7 @@ function pikminRoom(name){
   document.querySelector('#pkBack').onclick=()=>setup(true);
   document.querySelector('#pkChange').onclick=()=>pikminChoose(name);
   document.querySelector('#pkUndress').onclick=()=>{w.outfit={};pkPut(name,w);pikminRoom(name)};
-  document.querySelector('#pkStage').onclick=()=>{let s=document.querySelector('#pkStage');if(s.querySelector('canvas'))return;s.classList.remove('hop');void s.offsetWidth;s.classList.add('hop');say(pkSay(name))};if(PK_3D.includes(w.type)){document.querySelector('#pk3dBtn').onclick=()=>{pkView3D=!pkView3D;pikminRoom(name)};if(pkView3D)pkShow3D(document.querySelector('#pkStage'),w.type,()=>say(pkSay(name)))}
+  document.querySelector('#pkStage').onclick=()=>{let s=document.querySelector('#pkStage');if(s.querySelector('canvas'))return;s.classList.remove('hop');void s.offsetWidth;s.classList.add('hop');say(pkSay(name))};if(PK_3D.includes(w.type)){document.querySelector('#pk3dBtn').onclick=()=>{pkView3D=!pkView3D;pikminRoom(name)};if(pkView3D)pkShow3D(document.querySelector('#pkStage'),w.type,()=>say(pkSay(name)),pkWorn(w))}
   document.querySelectorAll('[data-item]').forEach(b=>b.onclick=()=>{
     let it=PK_ITEMS.find(x=>x.id===b.dataset.item);
     if(w.owned.includes(it.id)){if(w.outfit[it.slot]===it.id)delete w.outfit[it.slot];else w.outfit[it.slot]=it.id;pkPut(name,w);return pikminRoom(name)}
@@ -513,12 +513,14 @@ const PK_3D=['winged','yellow','rock'];let pkView3D=true;
 const PK_CHOICES=['winged','yellow','rock'];
 function pkLoad3D(){return(window.THREE?Promise.resolve():pkLoadScript('assets/three.min.js')).then(()=>window.Pikmin3D?0:pkLoadScript('assets/pikmin3d.js'))}
 function pkLoadScript(src){return new Promise((ok,no)=>{if(document.querySelector(`script[src="${src}"]`)&&window.Pikmin3D)return ok();let s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
-function pkShow3D(stage,type,onTap){
+// 目前穿著、而且確實買過的裝備
+function pkWorn(w){let o={};Object.entries(w.outfit||{}).forEach(([k,v])=>{if((w.owned||[]).includes(v))o[k]=v});return o}
+function pkShow3D(stage,type,onTap,outfit){
   let tip=document.querySelector('#pkTip'),svg=stage.innerHTML;
   stage.insertAdjacentHTML('beforeend','<div class="small center" style="position:absolute;inset:auto 0 8px 0">3D 載入中…</div>');stage.style.position='relative';
   pkLoad3D().then(()=>{
     if(!document.body.contains(stage))return;
-    if(window.Pikmin3D&&Pikmin3D.mount(stage,{type,onTap})){if(tip)tip.textContent='左右拖曳可以旋轉，點一下牠會跳起來！3D 模式暫時不顯示裝備，按「換裝模式」看穿上裝備的樣子。'}
+    if(window.Pikmin3D&&Pikmin3D.mount(stage,{type,onTap,outfit})){if(tip)tip.textContent='左右拖曳可以旋轉，點一下牠會跳起來！穿上的裝備也會一起顯示。'}
     else{stage.innerHTML=svg;if(tip)tip.textContent='這台裝置無法顯示 3D，先用平面圖顯示。'}
   }).catch(()=>{if(document.body.contains(stage)){stage.innerHTML=svg;if(tip)tip.textContent='3D 模型載入失敗，先用平面圖顯示。'}})
 }
@@ -527,8 +529,8 @@ function pikminChoose(name){
   card.innerHTML=`<h1>選一隻自己的皮克敏</h1><p class="small center">${ok?'換成別隻皮克敏，已經買的裝備都會保留。':w.type?'皮克敏的種類調整了，請重新選一隻！已經買的裝備都會保留。':'選好之後，就可以用學習得到的金幣幫牠買裝備！'}</p>
   <div class="type-grid">${PK_TYPES.filter(t=>PK_CHOICES.includes(t.id)).map(t=>`<button class="type-card ${w.type===t.id?'on':''}" data-type="${t.id}"><div class="type-pic">${pkSVG(t.id)}</div><b>${t.name}</b><span class="small">${t.desc}</span></button>`).join('')}</div>
   <div class="center"><button class="home" id="pkBack">← ${ok?'返回皮克敏':'返回首頁'}</button></div>`;
-  // 卡片上的圖改成 3D 模型的畫面（無法顯示 3D 時保留平面圖）
-  pkLoad3D().then(()=>document.querySelectorAll('.type-card').forEach(b=>{let u=window.Pikmin3D&&Pikmin3D.snapshot(b.dataset.type,220,286);if(u)b.querySelector('.type-pic').innerHTML=`<img src="${u}" alt="" style="width:100%;height:100%;object-fit:contain">`})).catch(()=>{});
+  // 卡片上的圖改成 3D 模型的畫面，並穿上目前的裝備（無法顯示 3D 時保留平面圖）
+  pkLoad3D().then(()=>document.querySelectorAll('.type-card').forEach(b=>{let u=window.Pikmin3D&&Pikmin3D.snapshot(b.dataset.type,220,286,.35,.12,pkWorn(w));if(u)b.querySelector('.type-pic').innerHTML=`<img src="${u}" alt="" style="width:100%;height:100%;object-fit:contain">`})).catch(()=>{});
   document.querySelectorAll('[data-type]').forEach(b=>b.onclick=()=>{let w=pkWallet(name);w.type=b.dataset.type;pkPut(name,w);pikminRoom(name)});
   document.querySelector('#pkBack').onclick=()=>ok?pikminRoom(name):setup(true)
 }
