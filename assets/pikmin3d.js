@@ -155,19 +155,19 @@
     return root;
   }
 
-  /* 3D 岩石皮克敏：比例依照參考截圖（正面、斜前、斜後、背面）量測，以「岩石寬 = 1」為單位（全身高約 2.4）：
-   *   身體：一整塊不規則多面體岩石，寬 1.0 × 高 1.04 × 深 0.9，上方較窄、最寬處在由上往下約 57%
+  /* 3D 岩石皮克敏：比例依照參考截圖（正面、斜前、斜後、背面）量測，以截圖中 400 像素為 1 個單位：
+   *   身體：一整塊不規則多面體岩石，寬 0.9 × 高 1.04 × 深 0.82（不含手臂，寬:高 ≈ 0.87），上方較窄、最寬處在由上往下約 57%
    *   眼睛：很小的白色圓眼睛，各約 0.14（岩石寬的 14%），中心在左右 ±0.17、由頂端往下約 15%；黑眼珠約眼睛的 0.44
    *   莖：從頂端長出，往右上方彎；下段灰色、上段轉綠，下粗上細
-   *   花：萬壽菊，直徑約 0.72，中心在岩石頂端上方約 0.81、往右約 0.35；橘色多層花瓣＋綠色花萼
+   *   頭上：綠色蛋形花苞（寬約 0.4、高約 0.56），頂端較淡，底部有萼片
    *   手：很細的淺灰色手臂，從兩側由上往下約 57% 處伸出，往外下方；腳：短，約 0.19，左右 ±0.12 */
   function buildRock(){
-    const K={lit:0x8a8e94,side:0x46474b,under:0x45493f,arm:0xc4c8cc,leg:0x7a8088,stem:0x8a909a,stemTop:0x6aa04a,calyx:0x5aa63e,petal:0xd3802a,petalIn:0xeab046};
+    const K={lit:0x8a8e94,side:0x46474b,under:0x45493f,arm:0xc4c8cc,leg:0x7a8088,stem:0x8a909a,stemTop:0x6aa04a,calyx:0x5aa64a,bud:0x4f9e45,budTop:0xd6d7d2};
     const root=new T.Group();
     // 岩石：十二面體依量測尺寸縮放，再讓每個頂點稍微不規則
     const g=new T.DodecahedronGeometry(1,0);g.rotateY(Math.PI/2);
     const p=g.attributes.position,seen={},hash=(x,y,z)=>Math.sin(x*12.9898+y*78.233+z*37.719)*43758.5453%1;
-    g.computeBoundingBox();const b=g.boundingBox,sx=1/(b.max.x-b.min.x),sy=1.04/(b.max.y-b.min.y),sz=.9/(b.max.z-b.min.z);
+    g.computeBoundingBox();const b=g.boundingBox,sx=.9/(b.max.x-b.min.x),sy=1.12/(b.max.y-b.min.y),sz=.82/(b.max.z-b.min.z);
     for(let i=0;i<p.count;i++){
       let x=p.getX(i),y=p.getY(i),z=p.getZ(i),key=x.toFixed(3)+','+y.toFixed(3)+','+z.toFixed(3);
       if(!seen[key]){const h=hash(x,y,z);seen[key]=[1+.04*h,.03*hash(z,x,y)]}
@@ -193,22 +193,21 @@
     const curve=new T.CatmullRomCurve3([new T.Vector3(0,top-.06,0),new T.Vector3(0,top+.22,0),new T.Vector3(.08,top+.44,.03),new T.Vector3(.25,top+.62,.06)]);
     const sc1=new T.Color(K.stem),sc2=new T.Color(K.stemTop);
     root.add(new T.Mesh(taperTube(curve,32,12,t=>.016+.05*Math.pow(1-t,1.6),(t,cc)=>cc.copy(sc1).lerp(sc2,Math.max(0,(t-.5)/.5))),vmat({roughness:.4,metalness:.15})));
-    // 花萼＋萬壽菊（直徑約 0.72）
-    const tip=curve.getPointAt(1),tan=curve.getTangentAt(1).normalize();
-    const calyx=new T.Mesh(new T.ConeGeometry(.075,.2,12,1,true),mat(K.calyx,{roughness:.5,side:T.DoubleSide}));
-    calyx.quaternion.setFromUnitVectors(new T.Vector3(0,-1,0),tan);calyx.position.copy(tip).addScaledVector(tan,.08);root.add(calyx);
-    const fl=new T.Group(),fc=tip.clone().addScaledVector(tan,.2);fl.position.copy(fc);
-    const po=new T.Color(K.petal),pi=new T.Color(K.petalIn);
-    for(let L=0;L<8;L++){const cnt=Math.max(8,22-L*2),rad=Math.max(.06,.33-.045*L),len=Math.max(.09,.2-.016*L);
-      for(let k=0;k<cnt;k++){const a=(k+L*.43)/cnt*Math.PI*2+.18*hash(k,L,1),pg=new T.SphereGeometry(1,10,6);pg.scale(.065,len/2,.014);
-        const pc=po.clone().lerp(pi,L/7+.15*hash(L,k,2)),pm=new T.Mesh(pg,mat(pc.getHex(),{roughness:.65,side:T.DoubleSide}));
-        const arm=new T.Group();arm.rotation.z=a;pm.position.y=rad-len/2+.04;pm.position.z=.035*L;pm.rotation.x=.25+.24*L+.3*hash(k,L,3);pm.rotation.y=.4*hash(L,k,4);arm.add(pm);fl.add(arm)}}
-    {const ctr=new T.Mesh(new T.SphereGeometry(.11,14,10),mat(K.petalIn,{roughness:.7}));ctr.position.z=.17;ctr.scale.z=.7;fl.add(ctr)}
-    fl.scale.setScalar(1.15);fl.lookAt(fc.clone().add(new T.Vector3(.25,.5,.85)));root.add(fl);
+    // 花苞：綠色蛋形、頂端較淡，底部有萼片（與黃皮克敏同樣式），朝向莖的方向
+    const tip=curve.getPointAt(1),tan=curve.getTangentAt(1).normalize(),bud=new T.Group();
+    const bg=new T.SphereGeometry(1,28,20),bp=bg.attributes.position;
+    for(let i=0;i<bp.count;i++){let x=bp.getX(i),y=bp.getY(i),z=bp.getZ(i),k=y>0?1-.25*y*y:1-.05*y*y;bp.setXYZ(i,x*.2*k,y*.28+.26,z*.2*k)}
+    bg.computeVertexNormals();
+    const b1=new T.Color(K.bud),b2=new T.Color(K.budTop);
+    bud.add(new T.Mesh(colorize(bg,(x,y,z,cc)=>cc.copy(b1).lerp(b2,Math.min(1,Math.max(0,(y-.36)/.18)))),vmat({roughness:.55})));
+    const sm=mat(K.calyx,{roughness:.6,side:T.DoubleSide});
+    for(let k=0;k<5;k++){const a=k/5*Math.PI*2,lg=new T.SphereGeometry(1,14,10);lg.scale(.085,.14,.014);
+      const leaf=new T.Mesh(lg,sm);leaf.position.set(Math.sin(a)*.16,.15,Math.cos(a)*.16);leaf.rotation.y=a;leaf.rotation.x=-.35;bud.add(leaf)}
+    bud.position.copy(tip);bud.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),tan);root.add(bud);
     // 手：從兩側由上往下約 57% 伸出，往外下方；三根手指
     const am=mat(K.arm,{roughness:.5}),lm=mat(K.leg,{roughness:.5}),ay=top-.57*H;
     [-1,1].forEach(s=>{
-      const sh=[.47*s,ay,.02],hd=[.63*s,ay-.2,.06];root.add(limb(sh,hd,.022,am));
+      const sh=[.42*s,ay,.02],hd=[.58*s,ay-.2,.06];root.add(limb(sh,hd,.022,am));
       [[-.04,-.06],[0,-.07],[.04,-.05]].forEach(([dx,dy])=>root.add(limb(hd,[hd[0]+dx*s+.01*s,hd[1]+dy,hd[2]+.02],.009,am)));
     });
     // 腳：短（約 0.19），左右 ±0.12
@@ -257,5 +256,16 @@
     if(!R.running){R.running=true;requestAnimationFrame(frame)}
     return true;
   }
-  window.Pikmin3D={mount,setView(yaw,pitch){if(R){R.auto=false;R.yaw=yaw;R.pitch=pitch}}};
+  // 產生某一種 3D 皮克敏的靜態圖片（選皮克敏的卡片用），回傳 PNG 的 data URL
+  function snapshot(type,w,h,yaw=.35,pitch=.12){
+    if(!init())return null;
+    const m=({yellow:buildYellow,rock:buildRock}[type]||buildWinged)(),old=R.model;
+    if(old)R.scene.remove(old);R.scene.add(m);m.rotation.y=yaw;
+    const box=new T.Box3().setFromObject(m),sz=box.getSize(new T.Vector3()),cy=box.getCenter(new T.Vector3()).y,dist=sz.y/2/Math.tan(R.cam.fov*Math.PI/360)*1.12;
+    R.r.setSize(w,h,false);R.cam.aspect=w/h;R.cam.updateProjectionMatrix();
+    R.cam.position.set(0,cy+Math.sin(pitch)*dist,Math.cos(pitch)*dist);R.cam.lookAt(0,cy,0);R.r.render(R.scene,R.cam);
+    const url=R.r.domElement.toDataURL('image/png');
+    R.scene.remove(m);if(old)R.scene.add(old);R.w=R.h=0;return url;
+  }
+  window.Pikmin3D={mount,snapshot,build:type=>({yellow:buildYellow,rock:buildRock}[type]||buildWinged)(),setView(yaw,pitch){if(R){R.auto=false;R.yaw=yaw;R.pitch=pitch}}};
 })();
