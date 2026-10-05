@@ -93,7 +93,7 @@
     root.userData.wings=wings;
     // 裝備位置：帽子戴在頭頂偏後（前上方是大眼睛）；腮紅、嘴巴在眼睛下方；脖子在頭和身體交接處
     root.userData.anchors={hat:{p:V(0,.3,-.1),s:.95,rx:-.38},eyes:E,eyeR:.2,eyeD:.13,face:[head],cheeks:[[.31,-.06],[-.31,-.06]],mouth:[0,-.12],
-      wrap:{c:V(0,0,0),z:.02,mesh:[head],t:.11},trunk:[head,bodyM],neckY:-.43,body:[-.43,-.8],hand:{p:V(.31,-.7,.08),s:.75,rx:.6},leaf:{obj:bud,p:tip,tan,s:1},back:{y0:-.4,y1:-.9,r1:.1,s:.85}};
+      wrap:{c:V(0,0,0),z:.02,mesh:[head],t:.11},clamp:{x:.41,y:-.07,d:.94,top:.39},trunk:[head,bodyM],neckY:-.43,body:[-.43,-.8],hand:{p:V(.31,-.7,.08),s:.75,rx:.6},leaf:{obj:bud,p:tip,tan,s:1},back:{y0:-.4,y1:-.9,r1:.1,s:.85}};
     return root;
   }
 
@@ -156,7 +156,7 @@
       [[-.1,.09],[0,.12],[.1,.08]].forEach(([dx,dz])=>root.add(limb(ft,[ft[0]+dx,ft[1]-.04,ft[2]+dz],.025,ym)));
     });
     root.userData.anchors={hat:{p:V(0,.33,0),s:1.05,rx:0},eyes:E,eyeR:.11,eyeD:.135,face:[trunk],cheeks:[[.29,-.12],[-.29,-.12]],mouth:[0,-.16],
-      wrap:{c:V(0,-.02,0),z:.04,rx:.5,ry:.53,t:.11},trunk:[trunk],neckY:-.64,body:[-.6,-1.27],hand:{p:V(.64,-1.15,.02),s:1,rx:.2},leaf:{obj:bud,p:tip,tan,s:1.75},back:{y0:-.62,y1:-1.5,r1:.14,s:1}};
+      wrap:{c:V(0,-.02,0),z:.04,rx:.5,ry:.53,t:.11},clamp:{x:.3,y:.08,d:1,top:.5},trunk:[trunk],neckY:-.64,body:[-.6,-1.27],hand:{p:V(.64,-1.15,.02),s:1,rx:.2},leaf:{obj:bud,p:tip,tan,s:1.75},back:{y0:-.62,y1:-1.5,r1:.14,s:1}};
     return root;
   }
 
@@ -222,7 +222,7 @@
     });
     // 岩石沒有脖子：脖子類裝備圍在眼睛下方，衣服包住岩石中下段
     root.userData.anchors={hat:{p:V(0,top-.05,0),s:.8,rx:0},eyes:E,eyeR:.069,eyeD:.088,face:[rock],cheeks:[[.27,top-.27*H],[-.27,top-.27*H]],mouth:[0,top-.29*H],
-      wrap:{c:V(0,(top+box.min.y)/2,0),z:.06,mesh:[rock],t:.16,z:.02},trunk:[rock],neckY:top-.38*H,body:[top-.42*H,box.min.y+.1*H],hand:{p:V(.58,ay-.2,.06),s:.75,rx:.2},leaf:{obj:bud,p:tip,tan,s:.75},back:{y0:top-.3*H,y1:box.min.y-.08,r1:.12,s:.78}};
+      wrap:{c:V(0,(top+box.min.y)/2,0),z:.06,mesh:[rock],t:.16,z:.02},clamp:{x:.25,y:top-.4*H,d:.82,top},trunk:[rock],neckY:top-.38*H,body:[top-.42*H,box.min.y+.1*H],hand:{p:V(.58,ay-.2,.06),s:.75,rx:.2},leaf:{obj:bud,p:tip,tan,s:.75},back:{y0:top-.3*H,y1:box.min.y-.08,r1:.12,s:.78}};
     return root;
   }
   /* 3D 裝備：顏色與造型對照商店的平面圖示。每隻皮克敏在 userData.anchors 記錄裝備位置，
@@ -343,6 +343,31 @@
     [-1,1].forEach(k=>{const eg=uvScale(new T.SphereGeometry(1,24,16),3,3);eg.scale(W.t*1.5,W.t*3,W.t*.32);eg.translate(0,W.t*2.7,0);
       const ear=new T.Mesh(eg,m);ear.position.copy(top);ear.rotation.set(-.2,k*.3,-k*.85);G.add(ear)});
   }
+  // 綠色大夾子（G 型夾）：從頭的一側前後夾住，弧形框架跨過頭頂，前面是銀色螺絲和 T 形把手
+  function clamp(A,G){
+    const C=A.clamp,ms=A.face,hit=(o,d)=>{ray.set(o,d);const h=ray.intersectObjects(ms,false)[0];return h&&h.point};
+    const f=hit(V(C.x,C.y,3),V(0,0,-1)),b=hit(V(C.x,C.y,-3),V(0,0,1));if(!f||!b)return;
+    const D=f.z-b.z,zc=(f.z+b.z)/2,d=C.d;
+    const w=.23*d,bk=-D/2-.12*d-w/2,fr=D/2+.15*d+w/2,it=C.top-C.y+.2*d,ro=w*.9,ri=w*.35,y0=-.05*d,y1=-.2*d;
+    // 框架：∩ 形的輪廓（u = 前後，v = 上下，以螺絲高度為 0）
+    const band=(bw)=>{const s=new T.Shape(),L=bk-bw/2,R=fr+bw/2,Li=bk+bw/2,Ri=fr-bw/2,Tp=it+(w+bw)/2,Ti=it+(w-bw)/2,ro2=Math.min(ro,bw*1.8),ri2=ri;
+      s.moveTo(L,y0);s.lineTo(L,Tp-ro2);s.quadraticCurveTo(L,Tp,L+ro2,Tp);s.lineTo(R-ro2,Tp);s.quadraticCurveTo(R,Tp,R,Tp-ro2);s.lineTo(R,y1);
+      s.quadraticCurveTo((R+Ri)/2,y1-bw*.25,Ri,y1);s.lineTo(Ri,Ti-ri2);s.quadraticCurveTo(Ri,Ti,Ri-ri2,Ti);s.lineTo(Li+ri2,Ti);s.quadraticCurveTo(Li,Ti,Li,Ti-ri2);s.lineTo(Li,y0);
+      s.quadraticCurveTo((L+Li)/2,y0-bw*.25,L,y0);return s};
+    const tm=mat(0x4cc4a0,{roughness:.35}),sm=mat(0xc9ccd1,{roughness:.25,metalness:.75}),g=new T.Group();
+    const ext=(sh,d)=>{const e=new T.ExtrudeGeometry(sh,{depth:d,bevelEnabled:true,bevelThickness:w*.1,bevelSize:w*.08,bevelSegments:3,curveSegments:10});e.translate(0,0,-d/2);e.rotateY(-Math.PI/2);return new T.Mesh(e,tm)};
+    g.add(ext(band(w),w*.42));g.add(ext(band(w*.42),w*.62));
+    const cyl=(r,len,m,u,v)=>{const c=new T.Mesh(new T.CylinderGeometry(r,r,len,24),m);c.rotation.x=Math.PI/2;c.position.set(0,v,u);g.add(c);return c};
+    // 後面固定的夾片、前面的螺絲座
+    cyl(w*.42,w*.18,tm,bk+w/2+w*.08,y0+w*.35);cyl(w*.38,w*1.05,tm,fr,0);
+    // 螺絲：從螺絲座穿過去頂住頭，外面有幾圈螺紋和 T 形把手
+    const sIn=D/2+.01*d,sOut=fr+w*1.15;cyl(w*.12,sOut-sIn,sm,(sIn+sOut)/2,0);cyl(w*.38,w*.1,sm,sIn+w*.05,0);
+    for(let k=0;k<5;k++){const t=new T.Mesh(new T.TorusGeometry(w*.125,w*.025,6,16),sm);t.position.set(0,0,fr+w*.55+k*w*.1);g.add(t)}
+    const hb=new T.Mesh(new T.CylinderGeometry(w*.16,w*.16,w*.3,20),sm);hb.position.set(0,0,sOut);g.add(hb);
+    g.add(limb([0,-w*1.1,sOut],[0,w*1.9,sOut],w*.075,sm));
+    [[-w*1.1],[w*1.9]].forEach(([v])=>{const cap=new T.Mesh(new T.CylinderGeometry(w*.11,w*.11,w*.22,16),sm);cap.position.set(0,v,sOut);g.add(cap)});
+    g.position.set(C.x+.01,C.y,zc);g.rotation.z=-.08;G.add(g);
+  }
   function addOutfit(root,outfit){
     const A=root.userData.anchors;if(!A)return;
     if(root.userData.gear)root.remove(root.userData.gear);
@@ -351,6 +376,7 @@
     const o=outfit||{};root.userData.spin=null;
     // 帽子
     if(o.hat==='dotscarf')dotScarf(A.wrap,G);
+    if(o.hat==='clamp')clamp(A,G);
     if(HATS[o.hat]){const h=HATS[o.hat]();h.position.copy(A.hat.p);h.scale.setScalar(A.hat.s);h.rotation.x=A.hat.rx||0;G.add(h)}
     // 臉部
     if(o.face==='glasses'||o.face==='sunglasses'){const sun=o.face==='sunglasses',r=A.eyeR,rim=[];
