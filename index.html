@@ -507,8 +507,8 @@ function pikminRoom(name){
     pikminRoom(name);say(`謝謝你送我「${it.name}」！`)
   })
 }
-// 3D 皮克敏：目前羽翅、黃皮克敏有 3D 模型（assets/pikmin3d.js）。three.js 只在打開 3D 模式時才載入。
-const PK_3D=['winged','yellow'];let pkView3D=true;
+// 3D 皮克敏：目前羽翅、黃、岩石皮克敏有 3D 模型（assets/pikmin3d.js）。three.js 只在打開 3D 模式時才載入。
+const PK_3D=['winged','yellow','rock'];let pkView3D=true;
 function pkLoadScript(src){return new Promise((ok,no)=>{if(document.querySelector(`script[src="${src}"]`)&&window.Pikmin3D)return ok();let s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
 function pkShow3D(stage,type,onTap){
   let tip=document.querySelector('#pkTip'),svg=stage.innerHTML;

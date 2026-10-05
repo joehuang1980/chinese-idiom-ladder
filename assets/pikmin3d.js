@@ -154,6 +154,70 @@
     });
     return root;
   }
+
+  /* 3D 岩石皮克敏：比例依照參考截圖（正面、斜前、斜後、背面）量測，以「岩石寬 = 1」為單位（全身高約 2.4）：
+   *   身體：一整塊不規則多面體岩石，寬 1.0 × 高 1.04 × 深 0.9，上方較窄、最寬處在由上往下約 57%
+   *   眼睛：很小的白色圓眼睛，各約 0.14（岩石寬的 14%），中心在左右 ±0.17、由頂端往下約 15%；黑眼珠約眼睛的 0.44
+   *   莖：從頂端長出，往右上方彎；下段灰色、上段轉綠，下粗上細
+   *   花：萬壽菊，直徑約 0.72，中心在岩石頂端上方約 0.81、往右約 0.35；橘色多層花瓣＋綠色花萼
+   *   手：很細的淺灰色手臂，從兩側由上往下約 57% 處伸出，往外下方；腳：短，約 0.19，左右 ±0.12 */
+  function buildRock(){
+    const K={lit:0x8a8e94,side:0x46474b,under:0x45493f,arm:0xc4c8cc,leg:0x7a8088,stem:0x8a909a,stemTop:0x6aa04a,calyx:0x5aa63e,petal:0xd3802a,petalIn:0xeab046};
+    const root=new T.Group();
+    // 岩石：十二面體依量測尺寸縮放，再讓每個頂點稍微不規則
+    const g=new T.DodecahedronGeometry(1,0);g.rotateY(Math.PI/2);
+    const p=g.attributes.position,seen={},hash=(x,y,z)=>Math.sin(x*12.9898+y*78.233+z*37.719)*43758.5453%1;
+    g.computeBoundingBox();const b=g.boundingBox,sx=1/(b.max.x-b.min.x),sy=1.04/(b.max.y-b.min.y),sz=.9/(b.max.z-b.min.z);
+    for(let i=0;i<p.count;i++){
+      let x=p.getX(i),y=p.getY(i),z=p.getZ(i),key=x.toFixed(3)+','+y.toFixed(3)+','+z.toFixed(3);
+      if(!seen[key]){const h=hash(x,y,z);seen[key]=[1+.04*h,.03*hash(z,x,y)]}
+      const [jit,dy]=seen[key];x*=sx*jit;z*=sz*jit;y=y*sy+dy;if(y<-.4)y=-.4+(y+.4)*.45;
+      const w=1-.16*Math.pow((y+.07)/.6,2);x*=w;z*=w;p.setXYZ(i,x,y,z)}
+    g.computeVertexNormals();g.computeBoundingBox();g.computeBoundingSphere();
+    const cols=[],n=new T.Vector3(),A=new T.Vector3(),B=new T.Vector3(),Cc=new T.Vector3(),cl=new T.Color(K.lit),cs=new T.Color(K.side),cu=new T.Color(K.under),c=new T.Color();
+    for(let i=0;i<p.count;i+=3){A.fromBufferAttribute(p,i);B.fromBufferAttribute(p,i+1);Cc.fromBufferAttribute(p,i+2);n.subVectors(Cc,B).cross(A.clone().sub(B)).normalize();
+      if(n.y<-.35)c.copy(cu);else c.copy(cs).lerp(cl,Math.min(1,Math.max(0,n.y*.7+n.z*.45+.1)));
+      const v=1+.08*hash(A.x,A.y,A.z);c.multiplyScalar(v);for(let k=0;k<3;k++)cols.push(c.r,c.g,c.b)}
+    g.setAttribute('color',new T.Float32BufferAttribute(cols,3));
+    const rock=new T.Mesh(g,vmat({flatShading:true,roughness:.85}));root.add(rock);rock.updateMatrixWorld();
+    const box=new T.Box3().setFromObject(rock),top=box.max.y,H=box.max.y-box.min.y;
+    // 眼睛：很小（約岩石寬 14%），貼在上方的面上；用射線找出岩石表面的位置
+    const ray=new T.Raycaster(),wm=mat(0xffffff,{roughness:.25}),bm=mat(0x151515,{roughness:.2});
+    [-1,1].forEach(s=>{
+      ray.set(new T.Vector3(.174*s,top-.15*H,3),new T.Vector3(0,0,-1));const hit=ray.intersectObject(rock)[0];if(!hit)return;
+      const nn=hit.face.normal.clone().transformDirection(rock.matrixWorld).lerp(new T.Vector3(0,0,1),.6).normalize();
+      const eye=new T.Mesh(new T.SphereGeometry(.069,24,16),wm);eye.position.copy(hit.point).addScaledVector(nn,.018);root.add(eye);
+      const pu=new T.Mesh(new T.SphereGeometry(.031,16,12),bm);pu.position.copy(eye.position).addScaledVector(nn,.052).add(new T.Vector3(-.008*s,-.006,0));root.add(pu);
+    });
+    // 莖：從頂端長出、往右上方彎；下段灰色、上段轉綠
+    const curve=new T.CatmullRomCurve3([new T.Vector3(0,top-.06,0),new T.Vector3(0,top+.22,0),new T.Vector3(.08,top+.44,.03),new T.Vector3(.25,top+.62,.06)]);
+    const sc1=new T.Color(K.stem),sc2=new T.Color(K.stemTop);
+    root.add(new T.Mesh(taperTube(curve,32,12,t=>.016+.05*Math.pow(1-t,1.6),(t,cc)=>cc.copy(sc1).lerp(sc2,Math.max(0,(t-.5)/.5))),vmat({roughness:.4,metalness:.15})));
+    // 花萼＋萬壽菊（直徑約 0.72）
+    const tip=curve.getPointAt(1),tan=curve.getTangentAt(1).normalize();
+    const calyx=new T.Mesh(new T.ConeGeometry(.075,.2,12,1,true),mat(K.calyx,{roughness:.5,side:T.DoubleSide}));
+    calyx.quaternion.setFromUnitVectors(new T.Vector3(0,-1,0),tan);calyx.position.copy(tip).addScaledVector(tan,.08);root.add(calyx);
+    const fl=new T.Group(),fc=tip.clone().addScaledVector(tan,.2);fl.position.copy(fc);
+    const po=new T.Color(K.petal),pi=new T.Color(K.petalIn);
+    for(let L=0;L<8;L++){const cnt=Math.max(8,22-L*2),rad=Math.max(.06,.33-.045*L),len=Math.max(.09,.2-.016*L);
+      for(let k=0;k<cnt;k++){const a=(k+L*.43)/cnt*Math.PI*2+.18*hash(k,L,1),pg=new T.SphereGeometry(1,10,6);pg.scale(.065,len/2,.014);
+        const pc=po.clone().lerp(pi,L/7+.15*hash(L,k,2)),pm=new T.Mesh(pg,mat(pc.getHex(),{roughness:.65,side:T.DoubleSide}));
+        const arm=new T.Group();arm.rotation.z=a;pm.position.y=rad-len/2+.04;pm.position.z=.035*L;pm.rotation.x=.25+.24*L+.3*hash(k,L,3);pm.rotation.y=.4*hash(L,k,4);arm.add(pm);fl.add(arm)}}
+    {const ctr=new T.Mesh(new T.SphereGeometry(.11,14,10),mat(K.petalIn,{roughness:.7}));ctr.position.z=.17;ctr.scale.z=.7;fl.add(ctr)}
+    fl.scale.setScalar(1.15);fl.lookAt(fc.clone().add(new T.Vector3(.25,.5,.85)));root.add(fl);
+    // 手：從兩側由上往下約 57% 伸出，往外下方；三根手指
+    const am=mat(K.arm,{roughness:.5}),lm=mat(K.leg,{roughness:.5}),ay=top-.57*H;
+    [-1,1].forEach(s=>{
+      const sh=[.47*s,ay,.02],hd=[.63*s,ay-.2,.06];root.add(limb(sh,hd,.022,am));
+      [[-.04,-.06],[0,-.07],[.04,-.05]].forEach(([dx,dy])=>root.add(limb(hd,[hd[0]+dx*s+.01*s,hd[1]+dy,hd[2]+.02],.009,am)));
+    });
+    // 腳：短（約 0.19），左右 ±0.12
+    [-1,1].forEach(s=>{
+      const tp=[.12*s,box.min.y+.06,0],ft=[.12*s,box.min.y-.19,.02];root.add(limb(tp,ft,.04,lm));
+      [[-.07,.06],[0,.09],[.07,.05]].forEach(([dx,dz])=>root.add(limb(ft,[ft[0]+dx,ft[1]-.015,ft[2]+dz],.014,lm)));
+    });
+    return root;
+  }
   let R=null;
   function init(){
     if(R)return R;
@@ -182,7 +246,7 @@
   function mount(el,opt={}){
     if(!init())return false;
     if(R.model)R.scene.remove(R.model);
-    R.model=(opt.type==='yellow'?buildYellow:buildWinged)();R.scene.add(R.model);
+    R.model=({yellow:buildYellow,rock:buildRock}[opt.type]||buildWinged)();R.scene.add(R.model);
     {const box=new T.Box3().setFromObject(R.model),sz=box.getSize(new T.Vector3()),c=box.getCenter(new T.Vector3());R.cy=c.y;R.dist=sz.y/2/Math.tan(R.cam.fov*Math.PI/360)*1.18}R.el=el;R.w=R.h=0;R.auto=opt.auto!==false;
     if(opt.yaw!=null)R.yaw=opt.yaw;if(opt.pitch!=null)R.pitch=opt.pitch;
     el.innerHTML='';el.appendChild(R.r.domElement);const c=R.r.domElement;c.style.width='100%';c.style.height='100%';c.style.touchAction='none';
