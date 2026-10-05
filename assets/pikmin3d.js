@@ -93,6 +93,70 @@
     root.userData.wings=wings;
     return root;
   }
+
+  /* 3D 黃皮克敏：比例依照參考截圖（背面、側面、俯視）量測，以「頭寬 = 1」為單位（全身高約 5）：
+   *   頭：1.0 × 1.0（深 1.05），接近圓形
+   *   耳朵：薄三角片，每隻長約 0.6（尖端到頭中心約 1.0）、根部高約 0.55；上緣幾乎水平、尖端略朝上，
+   *         內側桃粉色、朝向前方
+   *   眼睛：白色小眼睛＋黑眼珠，各約 0.22，左右分開（中心距頭中心約 ±0.2），在頭正面略高於中線
+   *   莖：長，底部像圓錐一樣張開，往上越細並往後彎，上段轉為綠色
+   *   花苞：很大，寬約 1.0、高約 1.15，綠色、頂端淡灰白，底部有萼片
+   *   脖子：細，寬約 0.4；身體：肩寬約 0.7、腰 0.6、臀 0.66，長約 1.15
+   *   手：細，往外下方約 45 度；腳：短，約 0.3，三根腳趾 */
+  function buildYellow(){
+    const Y={body:0xe6bf26,ear:0xf0b47e,stemTop:0x5f8f35,bud:0x4f9e45,budTop:0xbcc4b6,sepal:0x5aa64a};
+    const root=new T.Group(),ym=mat(Y.body,{roughness:.45});
+    // 頭：rx .5、ry .5、rz .53，上方稍微收向莖
+    const hg=new T.SphereGeometry(1,48,32),hp=hg.attributes.position;
+    for(let i=0;i<hp.count;i++){let x=hp.getX(i),y=hp.getY(i),z=hp.getZ(i),k=y>0?1-.1*y*y:1;hp.setXYZ(i,x*.5*k,y*.5,z*.53*k)}
+    hg.computeVertexNormals();root.add(new T.Mesh(hg,ym));
+    // 耳朵：外側黃色、內側桃粉色，朝前方；上緣幾乎水平、尖端略朝上
+    const es=new T.Shape();es.moveTo(0,.26);es.lineTo(.63,.32);es.quadraticCurveTo(.3,-.1,0,-.3);es.closePath();
+    const eg=new T.ExtrudeGeometry(es,{depth:.035,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:2,curveSegments:16});
+    const is=new T.Shape();is.moveTo(.05,.19);is.lineTo(.52,.26);is.quadraticCurveTo(.26,-.06,.05,-.21);is.closePath();
+    const ig=new T.ShapeGeometry(is,16),im=mat(Y.ear,{roughness:.6,side:T.DoubleSide});
+    [-1,1].forEach(s=>{
+      const ear=new T.Group();ear.add(new T.Mesh(eg,mat(Y.body,{roughness:.45,side:T.DoubleSide})));
+      const inner=new T.Mesh(ig,im);inner.position.z=.05;ear.add(inner);
+      ear.position.set(.4*s,.02,-.03);ear.rotation.y=s>0?-.28:.28;ear.scale.x=s;root.add(ear);
+    });
+    // 眼睛：白色＋黑眼珠，沿頭部表面法線
+    const wm=mat(0xffffff,{roughness:.25}),bm=mat(0x111111,{roughness:.2});
+    [-1,1].forEach(s=>{
+      const x=.2*s,y=.06,z=.53*Math.sqrt(1-(x/.5)**2-(y/.5)**2),n=new T.Vector3(x/.25,y/.25,z/.28).normalize();
+      const eye=new T.Mesh(new T.SphereGeometry(.11,24,16),wm);eye.position.set(x,y,z).addScaledVector(n,.02);root.add(eye);
+      const pu=new T.Mesh(new T.SphereGeometry(.058,16,12),bm);pu.position.copy(eye.position).addScaledVector(n,.07);root.add(pu);
+    });
+    // 莖：底部像圓錐張開，往上越細、往後彎，上段轉為綠色
+    const curve=new T.CatmullRomCurve3([new T.Vector3(0,.42,0),new T.Vector3(0,1.0,-.05),new T.Vector3(0,1.5,-.25),new T.Vector3(0,1.82,-.55)]);
+    const yc=new T.Color(Y.body),gc=new T.Color(Y.stemTop);
+    root.add(new T.Mesh(taperTube(curve,40,14,t=>.026+.24*Math.pow(1-t,5)+.025*(1-t),(t,c)=>c.copy(yc).lerp(gc,Math.max(0,(t-.68)/.32))),vmat({roughness:.45})));
+    // 花苞：很大（寬約 1.0、高約 1.15），綠色、頂端淡灰白，底部有萼片
+    const bud=new T.Group(),tip=curve.getPointAt(1),tan=curve.getTangentAt(1);
+    const bg=new T.SphereGeometry(1,32,24),bp=bg.attributes.position;
+    for(let i=0;i<bp.count;i++){let x=bp.getX(i),y=bp.getY(i),z=bp.getZ(i),k=y>0?1-.25*y*y:1-.05*y*y;bp.setXYZ(i,x*.46*k,y*.66+.62,z*.46*k)}
+    bg.computeVertexNormals();
+    const b1=new T.Color(Y.bud),b2=new T.Color(Y.budTop);
+    bud.add(new T.Mesh(colorize(bg,(x,y,z,c)=>c.copy(b1).lerp(b2,Math.min(1,Math.max(0,(y-.85)/.4)))),vmat({roughness:.55})));
+    const sm=mat(Y.sepal,{roughness:.6,side:T.DoubleSide});
+    for(let k=0;k<5;k++){const a=k/5*Math.PI*2,lg=new T.SphereGeometry(1,16,12);lg.scale(.19,.32,.03);
+      const leaf=new T.Mesh(lg,sm);leaf.position.set(Math.sin(a)*.36,.36,Math.cos(a)*.36);leaf.rotation.y=a;leaf.rotation.x=-.35;bud.add(leaf)}
+    bud.position.copy(tip);bud.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),tan.normalize());root.add(bud);
+    // 脖子＋身體（旋轉體）：脖子寬約 0.4，肩 0.7、腰 0.6、臀 0.66
+    const prof=new T.SplineCurve([[.001,-1.69],[.17,-1.67],[.29,-1.6],[.33,-1.47],[.32,-1.32],[.29,-1.17],[.25,-1.03],[.21,-.9],[.19,-.78],[.2,-.66],[.24,-.55],[.32,-.42]].map(([r,y])=>new T.Vector2(r,y))).getPoints(60);
+    const lg=new T.LatheGeometry(prof,36);lg.scale(1,1,.86);root.add(new T.Mesh(lg,ym));
+    // 手：細，往外下方約 45 度，三根手指
+    [-1,1].forEach(s=>{
+      const sh=[.29*s,-1.03,0],hd=[.72*s,-1.41,.02];root.add(limb(sh,hd,.032,ym));
+      [[-.04,-.09],[.03,-.1],[.08,-.06]].forEach(([dx,dy])=>root.add(limb(hd,[hd[0]+dx*s,hd[1]+dy,hd[2]+.02],.014,ym)));
+    });
+    // 腳：短，三根腳趾
+    [-1,1].forEach(s=>{
+      const top=[.19*s,-1.6,0],ft=[.2*s,-1.93,.02];root.add(limb(top,ft,.075,ym));
+      [[-.1,.09],[0,.12],[.1,.08]].forEach(([dx,dz])=>root.add(limb(ft,[ft[0]+dx,ft[1]-.04,ft[2]+dz],.025,ym)));
+    });
+    return root;
+  }
   let R=null;
   function init(){
     if(R)return R;
@@ -113,15 +177,16 @@
     if(R.auto&&!R.drag)R.yaw=Math.sin(t*.5)*.5;
     const hopY=R.hop>0?Math.sin((1-R.hop)*Math.PI)*.25:0;if(R.hop>0)R.hop=Math.max(0,R.hop-.03);
     R.model.rotation.y=R.yaw;R.model.position.y=Math.sin(t*2)*.025+hopY;
-    R.model.userData.wings.forEach((p,k)=>p.rotation.z=Math.sin(t*14)*.22*(k?1:-1));
-    const dist=6.2;R.cam.position.set(0,.2+Math.sin(R.pitch)*dist,Math.cos(R.pitch)*dist);R.cam.lookAt(0,.2,0);
+    (R.model.userData.wings||[]).forEach((p,k)=>p.rotation.z=Math.sin(t*14)*.22*(k?1:-1));
+    const dist=R.dist||6.2,cy=R.cy==null?.2:R.cy;R.cam.position.set(0,cy+Math.sin(R.pitch)*dist,Math.cos(R.pitch)*dist);R.cam.lookAt(0,cy,0);
     R.r.render(R.scene,R.cam);
   }
   // 把 3D 皮克敏放進 el；左右拖曳可旋轉，點一下會跳起來
   function mount(el,opt={}){
     if(!init())return false;
     if(R.model)R.scene.remove(R.model);
-    R.model=buildWinged();R.scene.add(R.model);R.el=el;R.w=R.h=0;R.auto=opt.auto!==false;
+    R.model=(opt.type==='yellow'?buildYellow:buildWinged)();R.scene.add(R.model);
+    {const box=new T.Box3().setFromObject(R.model),sz=box.getSize(new T.Vector3()),c=box.getCenter(new T.Vector3());R.cy=c.y;R.dist=sz.y/2/Math.tan(R.cam.fov*Math.PI/360)*1.18}R.el=el;R.w=R.h=0;R.auto=opt.auto!==false;
     if(opt.yaw!=null)R.yaw=opt.yaw;if(opt.pitch!=null)R.pitch=opt.pitch;
     el.innerHTML='';el.appendChild(R.r.domElement);const c=R.r.domElement;c.style.width='100%';c.style.height='100%';c.style.touchAction='none';
     let sx=0,sy=0,moved=false;

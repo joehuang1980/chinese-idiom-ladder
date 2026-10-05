@@ -496,7 +496,7 @@ function pikminRoom(name){
   document.querySelector('#pkBack').onclick=()=>setup(true);
   document.querySelector('#pkChange').onclick=()=>pikminChoose(name);
   document.querySelector('#pkUndress').onclick=()=>{w.outfit={};pkPut(name,w);pikminRoom(name)};
-  document.querySelector('#pkStage').onclick=()=>{let s=document.querySelector('#pkStage');if(s.querySelector('canvas'))return;s.classList.remove('hop');void s.offsetWidth;s.classList.add('hop');say(pkSay(name))};if(PK_3D.includes(w.type)){document.querySelector('#pk3dBtn').onclick=()=>{pkView3D=!pkView3D;pikminRoom(name)};if(pkView3D)pkShow3D(document.querySelector('#pkStage'),()=>say(pkSay(name)))}
+  document.querySelector('#pkStage').onclick=()=>{let s=document.querySelector('#pkStage');if(s.querySelector('canvas'))return;s.classList.remove('hop');void s.offsetWidth;s.classList.add('hop');say(pkSay(name))};if(PK_3D.includes(w.type)){document.querySelector('#pk3dBtn').onclick=()=>{pkView3D=!pkView3D;pikminRoom(name)};if(pkView3D)pkShow3D(document.querySelector('#pkStage'),w.type,()=>say(pkSay(name)))}
   document.querySelectorAll('[data-item]').forEach(b=>b.onclick=()=>{
     let it=PK_ITEMS.find(x=>x.id===b.dataset.item);
     if(w.owned.includes(it.id)){if(w.outfit[it.slot]===it.id)delete w.outfit[it.slot];else w.outfit[it.slot]=it.id;pkPut(name,w);return pikminRoom(name)}
@@ -507,15 +507,15 @@ function pikminRoom(name){
     pikminRoom(name);say(`謝謝你送我「${it.name}」！`)
   })
 }
-// 3D 皮克敏：目前只有羽翅皮克敏有 3D 模型（assets/pikmin3d.js）。three.js 只在打開 3D 模式時才載入。
-const PK_3D=['winged'];let pkView3D=true;
+// 3D 皮克敏：目前羽翅、黃皮克敏有 3D 模型（assets/pikmin3d.js）。three.js 只在打開 3D 模式時才載入。
+const PK_3D=['winged','yellow'];let pkView3D=true;
 function pkLoadScript(src){return new Promise((ok,no)=>{if(document.querySelector(`script[src="${src}"]`)&&window.Pikmin3D)return ok();let s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
-function pkShow3D(stage,onTap){
+function pkShow3D(stage,type,onTap){
   let tip=document.querySelector('#pkTip'),svg=stage.innerHTML;
   stage.insertAdjacentHTML('beforeend','<div class="small center" style="position:absolute;inset:auto 0 8px 0">3D 載入中…</div>');stage.style.position='relative';
   (window.THREE?Promise.resolve():pkLoadScript('assets/three.min.js')).then(()=>window.Pikmin3D?0:pkLoadScript('assets/pikmin3d.js')).then(()=>{
     if(!document.body.contains(stage))return;
-    if(window.Pikmin3D&&Pikmin3D.mount(stage,{onTap})){if(tip)tip.textContent='左右拖曳可以旋轉，點一下牠會跳起來！3D 模式暫時不顯示裝備，按「換裝模式」看穿上裝備的樣子。'}
+    if(window.Pikmin3D&&Pikmin3D.mount(stage,{type,onTap})){if(tip)tip.textContent='左右拖曳可以旋轉，點一下牠會跳起來！3D 模式暫時不顯示裝備，按「換裝模式」看穿上裝備的樣子。'}
     else{stage.innerHTML=svg;if(tip)tip.textContent='這台裝置無法顯示 3D，先用平面圖顯示。'}
   }).catch(()=>{if(document.body.contains(stage)){stage.innerHTML=svg;if(tip)tip.textContent='3D 模型載入失敗，先用平面圖顯示。'}})
 }
