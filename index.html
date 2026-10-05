@@ -350,40 +350,91 @@ function pkEarn(name,amount,recId){
   return w
 }
 // 皮克敏外觀：水滴形的頭往上收成與身體同色的莖、兩側的大眼睛、細長身體與三趾小腳；岩石皮克敏是一整塊多面體岩石
-// 依照參考照片比例重新設計的皮克敏（目前用於紅皮克敏）
-// 比例（以花苞頂端到腳底為 100%）：花苞 19%、莖 29%、頭 27%（高:寬 ≈ 1.45:1，下寬上尖的洋蔥形）、
-// 脖子很短、身體 15%（寬約頭的 6 成）、腿腳 8%；眼睛直徑約頭寬的 1/3，位於頭部由上往下約 4 成處。
+// 依照參考照片比例重新設計的皮克敏（紅、黃、藍、岩石）。每一種的數值都是從參考照片量出來的：
+// 以頭頂裝飾頂端到腳底為 100%（SVG 中 y 8～250）。
+//   紅：花苞 19%、莖 29%、頭 27%（高:寬 ≈ 1.45）、身體寬約頭的 0.6；眼睛直徑約頭寬 1/3；尖鼻子
+//   黃：葉子 22%、莖 26%（往左彎）、頭 24%（高:寬 ≈ 1.34）、身體寬約頭的 0.66；眼睛約頭寬 0.3；兩側大三角耳（每隻約頭寬 0.75）
+//   藍：大白花 22%（比頭還寬）、莖 24%、頭 26%（高:寬 ≈ 1.28，最圓最大）、身體寬約頭的 0.5；眼睛約頭寬 0.26；小嘴巴
+//   岩石：紫花 29%、淺灰色莖 20%、整個身體是一塊多面岩石 46%（寬約等於高）；眼睛小（約岩石寬 0.16），四肢淺灰色細長
+const PK_SPEC={
+  red:{
+    shape:'M93 122 C85 129 78 140 78 156 C78 170 85 179 91.5 185 C93.5 188 93 193 90.5 197 C86 204 85.5 214 86.5 223 C87.5 230 93.5 233.5 101 233.5 C108.5 233.5 114.5 230 115.5 223 C116.5 214 116 204 111.5 197 C109 193 108.5 188 110.5 185 C117 179 124 170 124 156 C124 140 117 129 109 122 C105 119 97 119 93 122Z',hl:'<ellipse cx="89" cy="138" rx="3.5" ry="7" transform="rotate(25 89 138)" fill="#fff" opacity=".35"/>',
+    bodyHl:'M94 204 C92 211 92 219 93.5 225',
+    stem:['M101.6 50 C101 70 99 96 93.5 124 L108.5 124 C104 96 103.6 70 104.4 50Z','M101.6 50 C101 70 99 96 94 122 M104.4 50 C103.6 70 104 96 108 122'],
+    top:(c,d)=>`<g class="leaf" style="transform-origin:103px 51px"><path d="M103 8 C116 8 122 22 121 34 C120 44 112 49 103 49 C94 49 86 44 85 34 C84 22 90 8 103 8Z" fill="#fafafa" stroke="#cfcfcf" stroke-width="1"/><path d="M103 9 C100 22 100 36 103 48" fill="none" stroke="#d6d6d6" stroke-width="1.2"/><path d="M90 16 C88 24 88 32 91 40" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/><path d="M85 38 L91 47 L96 41 L103 50 L110 41 L115 47 L121 38 C121 46 113 52 103 52 C93 52 85 46 85 38Z" fill="#9ccc65" stroke="#689f38" stroke-width="1" stroke-linejoin="round"/></g>`,leafAt:'translate(-15 3)',
+    eyes:{y:149,x:[83,119],r:7.6},
+    arms:[['M91 199 C86 205 82.5 214 81 225',81,225],['M111 199 C116 205 119.5 214 121 225',121,225]],legs:[95.5,106.5],
+    extra:{front:(c,d)=>`<path d="M96.5 155.5 Q101 151.5 105.5 155.5 L102.2 168 Q101 170 99.8 168Z" fill="${c}" stroke="${d}" stroke-width=".9"/><path d="M98 156.5 Q101 154.5 104 156.5 L101.7 164.5Z" fill="#fff" opacity=".22"/>`},
+    fit:{face:'translate(101 149) scale(1.15 .9) translate(-101 -133)',hat:'translate(101 137) scale(.8) translate(-101 -105)',
+      neck:'translate(101 191) scale(.5) translate(-101 -163)',body:'translate(101 192) scale(.49 .62) translate(-101 -160)',
+      hand:'translate(121 226) scale(.55) translate(-158 -201)',back:'translate(101 192) scale(.5) translate(-101 -160)'}
+  },
+  yellow:{
+    shape:'M95.5 125 C88 129 80 137 79.5 147 C79 160 82 172 88 179 C90 182 92.5 184 92.5 187 C92.5 190 91 192 89 196 C86.5 202 86 212 87 222 C88 229 94 232.5 101 232.5 C108 232.5 114 229 115 222 C116 212 115.5 202 113 196 C111 192 109.5 190 109.5 187 C109.5 184 112 182 114 179 C120 172 123 160 122.5 147 C122 137 114 129 106.5 125 C104 123.5 98 123.5 95.5 125Z',
+    hl:'<ellipse cx="88" cy="139" rx="3.5" ry="7" transform="rotate(30 88 139)" fill="#fff" opacity=".4"/>',bodyHl:'M93.5 203 C91.5 210 91.5 218 93 224',
+    stem:['M95.5 127 C95.5 100 89 76 70.5 61 L73.5 59 C93 74 106.5 98 106.5 127Z','M95.5 125 C95.5 100 89 76 70.5 61 M73.5 59 C93 74 106.5 98 106.5 125'],
+    top:(c,d)=>`<g class="leaf" style="transform-origin:72px 60px"><g transform="translate(72 60) rotate(-138)"><path d="M0 0 C14 -14 46 -16 78 0 C46 16 14 14 0 0Z" fill="#8bc34a" stroke="#558b2f" stroke-width="1.2"/><path d="M2 0 L72 0" stroke="#689f38" stroke-width="1.2"/><path d="M10 -4 C26 -11 46 -11 64 -4" fill="none" stroke="#fff" stroke-width="1.6" opacity=".35"/></g></g>`,leafAt:'translate(-46 12)',
+    eyes:{y:151.5,x:[84,118],r:7.6},
+    arms:[['M90 198 C85 205 81.5 214 80 225',80,225],['M112 198 C117 205 120.5 214 122 225',122,225]],legs:[95.5,106.5],
+    extra:{behind:(c,d)=>`<path d="M81.5 140 L45 132 Q57 154 83.5 168Z" fill="${c}" stroke="${d}" stroke-width="1.2" stroke-linejoin="round"/><path d="M120.5 140 L157 132 Q145 154 118.5 168Z" fill="${c}" stroke="${d}" stroke-width="1.2" stroke-linejoin="round"/><path d="M80 144 L55 136.5 Q64 152 81 162Z M122 144 L147 136.5 Q138 152 121 162Z" fill="${d}" opacity=".3"/>`},
+    fit:{face:'translate(101 151.5) scale(1.13 .85) translate(-101 -133)',hat:'translate(101 139) scale(.8) translate(-101 -105)',
+      neck:'translate(101 188) scale(.5) translate(-101 -163)',body:'translate(101 190) scale(.48 .62) translate(-101 -160)',
+      hand:'translate(122 226) scale(.55) translate(-158 -201)',back:'translate(101 190) scale(.5) translate(-101 -160)'}
+  },
+  blue:{
+    shape:'M93.5 118 C86 121 78 130 76.5 141 C75 154 78 164 85 171 C88.5 174.5 92 178 92 182 C92 186 91 189 89.5 193 C87 200 87 212 88 221 C89 228 94.5 231.5 101 231.5 C107.5 231.5 113 228 114 221 C115 212 115 200 112.5 193 C111 189 110 186 110 182 C110 178 113.5 174.5 117 171 C124 164 127 154 125.5 141 C124 130 116 121 108.5 118 C105 116.5 97 116.5 93.5 118Z',
+    hl:'<ellipse cx="87" cy="131" rx="4" ry="8" transform="rotate(35 87 131)" fill="#fff" opacity=".35"/>',bodyHl:'M94.5 200 C92.5 207 92.5 216 94 223',
+    stem:['M93.5 120 C93.5 95 90 70 84.6 45 L87.4 44 C95 68 108.5 94 108.5 120Z','M93.5 118 C93.5 95 90 70 84.6 45 M87.4 44 C95 68 108.5 94 108.5 118'],
+    top:(c,d)=>`<g class="leaf" style="transform-origin:86px 44px"><g transform="translate(84 34) rotate(-12) scale(1 .78)">${[0,72,144,216,288].map(a=>`<ellipse cx="0" cy="-20" rx="13.5" ry="20.5" transform="rotate(${a})" fill="#fafafa" stroke="#d0d0d0" stroke-width="1"/>`).join("")}<path d="M0 -6 L3 -2 L7 0 L3 2 L0 7 L-3 2 L-7 0 L-3 -2Z" fill="#8bc34a" stroke="#558b2f" stroke-width=".8"/><circle r="2.6" fill="#cddc39"/></g></g>`,leafAt:'translate(-32 -4)',
+    eyes:{y:147.5,x:[81.5,120.5],r:9},
+    arms:[['M90.5 194 C85.5 201 82.5 211 81 222',81,222],['M111.5 194 C116.5 201 119.5 211 121 222',121,222]],legs:[96,106],
+    extra:{front:()=>'<path d="M97.5 166 Q101 163.5 104.5 166 Q101 169 97.5 166Z" fill="#0b2f63"/>'},
+    fit:{face:'translate(101 147.5) scale(1.3 .95) translate(-101 -133)',hat:'translate(101 130) scale(.86) translate(-101 -105)',
+      neck:'translate(101 185) scale(.5) translate(-101 -163)',body:'translate(101 187) scale(.44 .64) translate(-101 -160)',
+      hand:'translate(121 222) scale(.55) translate(-158 -201)',back:'translate(101 187) scale(.48) translate(-101 -160)'}
+  },
+  rock:{
+    rock:true,limb:'#d9d9d9',limbD:'#a6a6a6',
+    shape:'M101 127 L142 153 L152 192 L146 212 L118 236 L84 236 L56 212 L50 192 L60 153Z',
+    facets:[['101,127 78,150 101,158 124,150','#fff',.13],['101,127 60,153 78,150','#fff',.22],['101,127 142,153 124,150','#000',.1],
+      ['60,153 78,150 76,190 50,192','#fff',.08],['142,153 124,150 126,190 152,192','#000',.18],['76,190 101,196 126,190 118,236 84,236','#000',.1],
+      ['50,192 76,190 84,236 56,212','#000',.22],['152,192 126,190 118,236 146,212','#000',.32]],
+    stem:['M95.5 129 C95.5 108 104 90 122 79 L127 81 C112 92 106.5 108 106.5 129Z','M95.5 128 C95.5 108 104 90 122 79 M127 81 C112 92 106.5 108 106.5 128'],
+    top:(c,d)=>`<g class="leaf" style="transform-origin:125px 79px"><g transform="translate(128 46)">${[0,72,144,216,288].map(a=>`<ellipse cx="0" cy="-18" rx="14" ry="18" transform="rotate(${a})" fill="#5b4dd6" stroke="#3a2fa3" stroke-width="1"/>`).join("")}<circle r="11.5" fill="#e3cf3b" stroke="#b9a523" stroke-width="1"/><ellipse cx="-3" cy="-4" rx="4" ry="2.5" fill="#fff" opacity=".35"/></g></g>`,leafAt:'translate(7 31)',
+    eyes:{y:145,x:[84,118],r:8.4,pr:2.9},
+    arms:[['M53 188 C44 199 38 214 34 231',34,231],['M149 188 C158 199 164 214 168 231',168,231]],legs:[91,111],
+    fit:{face:'translate(101 145) scale(1.13 1) translate(-101 -133)',hat:'translate(101 129) scale(1.05) translate(-101 -105)',
+      neck:'translate(101 170) scale(1.3) translate(-101 -163)',body:'translate(101 162) scale(1.35 1.1) translate(-101 -160)',
+      hand:'translate(168 229) scale(.65) translate(-158 -201)',back:'translate(101 152) scale(1.3 .95) translate(-101 -160)'}
+  }
+};
 function pkSVG2(t,outfit,owned){
-  let c=t.c,d=t.d,g='pkg-'+t.id,hi=t.hi||'#fff';
+  let S=PK_SPEC[t.id],c=t.c,d=t.d,g='pkg-'+t.id,hi=t.hi||'#fff',limb=S.limb||c,limbD=S.limbD||d;
   // 裝備圖案原本依舊版身形設計，依部位縮放與移位，讓它們貼合新身形
-  let fit={face:'translate(101 149) scale(1.15 .9) translate(-101 -133)',hat:'translate(101 137) scale(.8) translate(-101 -105)',
-    neck:'translate(101 191) scale(.5) translate(-101 -163)',body:'translate(101 192) scale(.49 .62) translate(-101 -160)',
-    hand:'translate(121 226) scale(.55) translate(-158 -201)',back:'translate(101 192) scale(.5) translate(-101 -160)',leaf:'translate(-15 3)'};
+  let fit={...S.fit,leaf:S.leafAt};
   let wear=s=>{let it=PK_ITEMS.find(x=>x.id===outfit[s]);return it&&owned.includes(it.id)?`<g transform="${fit[s]}">${it.svg}</g>`:''};
   let defs=`<defs><radialGradient id="${g}" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="${hi}" stop-opacity=".55"/><stop offset=".35" stop-color="${c}" stop-opacity="0"/><stop offset="1" stop-color="${d}" stop-opacity=".55"/></radialGradient></defs>`;
-  // 頭頂的花苞（照片中紅皮克敏是白色花苞＋綠色萼片）
-  let top=wear('leaf')||`<g class="leaf" style="transform-origin:103px 51px"><path d="M103 8 C116 8 122 22 121 34 C120 44 112 49 103 49 C94 49 86 44 85 34 C84 22 90 8 103 8Z" fill="#fafafa" stroke="#cfcfcf" stroke-width="1"/><path d="M103 9 C100 22 100 36 103 48" fill="none" stroke="#d6d6d6" stroke-width="1.2"/><path d="M90 16 C88 24 88 32 91 40" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/><path d="M85 38 L91 47 L96 41 L103 50 L110 41 L115 47 L121 38 C121 46 113 52 103 52 C93 52 85 46 85 38Z" fill="#9ccc65" stroke="#689f38" stroke-width="1" stroke-linejoin="round"/></g>`;
-  // 莖：上細下粗，自然流入頭部
-  let stem=`<path d="M101.6 50 C101 70 99 96 93.5 124 L108.5 124 C104 96 103.6 70 104.4 50Z" fill="${c}"/><path d="M101.6 50 C101 70 99 96 94 122 M104.4 50 C103.6 70 104 96 108 122" fill="none" stroke="${d}" stroke-width=".9"/>`;
-  // 頭、脖子、身體是一條連續的輪廓（照片中三者平順相連，沒有接縫）：頭下寬上尖、脖子短而細、身體細長底部圓
-  let shape='M93 122 C85 129 78 140 78 156 C78 170 85 179 91.5 185 C93.5 188 93 193 90.5 197 C86 204 85.5 214 86.5 223 C87.5 230 93.5 233.5 101 233.5 C108.5 233.5 114.5 230 115.5 223 C116.5 214 116 204 111.5 197 C109 193 108.5 188 110.5 185 C117 179 124 170 124 156 C124 140 117 129 109 122 C105 119 97 119 93 122Z';
-  let body=`<path d="${shape}" fill="${c}" stroke="${d}" stroke-width="1"/><path d="${shape}" fill="url(#${g})"/><ellipse cx="89" cy="138" rx="3.5" ry="7" transform="rotate(25 89 138)" fill="#fff" opacity=".35"/><path d="M94 204 C92 211 92 219 93.5 225" fill="none" stroke="#fff" stroke-width="2" opacity=".25" stroke-linecap="round"/>`;
-  // 細手臂＋三根手指（手垂在身體兩側）
-  let hand=(x,y,s)=>`<path d="M${x} ${y} l${-3*s} 3.5 M${x} ${y} l${-.5*s} 4.5 M${x} ${y} l${2*s} 4" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>`;
-  let arms=`<path d="M91 199 C86 205 82.5 214 81 225" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round"/>${hand(81,225,1)}<path d="M111 199 C116 205 119.5 214 121 225" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round"/>${hand(121,225,-1)}`;
-  // 短腿＋三趾腳
-  let foot=(x,s)=>`<path d="M${x} 231 L${x-s*.5} 245" stroke="${c}" stroke-width="4.2" stroke-linecap="round"/><path d="M${x-s*.5} 245 l${-6*s} 4 M${x-s*.5} 245 l${-1*s} 5.5 M${x-s*.5} 245 l${4.5*s} 4" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>`;
-  let legs=foot(95.5,1)+foot(106.5,-1);
-  // 眼睛：大白眼珠在頭的兩側、略為突出，黑色瞳孔
-  let eye=(x,s)=>`<circle cx="${x}" cy="149" r="7.6" fill="#fff" stroke="#b0b0b0" stroke-width=".8"/><circle cx="${x+s*.8}" cy="149.6" r="3.5" fill="#111"/><circle cx="${x+s*.8-1.1}" cy="148.3" r="1.1" fill="#fff"/>`;
-  let eyes=eye(83,-1)+eye(119,1);
-  // 鼻子：眼睛下方中間的小圓錐
-  let nose=`<path d="M96.5 155.5 Q101 151.5 105.5 155.5 L102.2 168 Q101 170 99.8 168Z" fill="${c}" stroke="${d}" stroke-width=".9"/><path d="M98 156.5 Q101 154.5 104 156.5 L101.7 164.5Z" fill="#fff" opacity=".22"/>`;
-  return `<svg class="mascot-svg" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${t.name}">${defs}${wear('back')}${legs}${arms}${body}${wear('body')}${wear('neck')}${stem}${eyes}${nose}${wear('face')}${wear('hat')}${top}${wear('hand')}</svg>`
+  let top=wear('leaf')||S.top(c,d);
+  let stem=`<path d="${S.stem[0]}" fill="${S.rock?limb:c}"/><path d="${S.stem[1]}" fill="none" stroke="${S.rock?limbD:d}" stroke-width=".9"/>`;
+  // 身體：一條連續輪廓（頭、脖子、身體平順相連），加上光影；岩石皮克敏改畫多面體
+  let body=S.rock?`<path d="${S.shape}" fill="${c}" stroke="${d}" stroke-width="1.4" stroke-linejoin="round"/>${S.facets.map(([p,col,o])=>`<polygon points="${p}" fill="${col}" opacity="${o}"/>`).join('')}`
+    :`<path d="${S.shape}" fill="${c}" stroke="${d}" stroke-width="1"/><path d="${S.shape}" fill="url(#${g})"/>${S.hl}<path d="${S.bodyHl}" fill="none" stroke="#fff" stroke-width="2" opacity=".25" stroke-linecap="round"/>`;
+  // 細手臂＋三根手指；短腿＋三趾腳
+  let hand=(x,y,s)=>`<path d="M${x} ${y} l${-3*s} 3.5 M${x} ${y} l${-.5*s} 4.5 M${x} ${y} l${2*s} 4" stroke="${limb}" stroke-width="1.8" stroke-linecap="round"/>`;
+  let arms=S.arms.map(([path,x1,y1],k)=>`<path d="${path}" fill="none" stroke="${limb}" stroke-width="${S.rock?2.8:3.2}" stroke-linecap="round"/>${hand(x1,y1,k?-1:1)}`).join('');
+  let ly=S.rock?236:231;
+  let foot=(x,s)=>`<path d="M${x} ${ly} L${x-s*.5} 245" stroke="${limb}" stroke-width="${S.rock?3.4:4.2}" stroke-linecap="round"/><path d="M${x-s*.5} 245 l${-6*s} 4 M${x-s*.5} 245 l${-1*s} 5.5 M${x-s*.5} 245 l${4.5*s} 4" stroke="${limb}" stroke-width="2.6" stroke-linecap="round"/>`;
+  let legs=foot(S.legs[0],1)+foot(S.legs[1],-1);
+  // 眼睛：白色大眼珠在頭的兩側、略為突出，黑色瞳孔
+  let E=S.eyes,pr=E.pr||E.r*.46;
+  let eye=(x,s)=>`<circle cx="${x}" cy="${E.y}" r="${E.r}" fill="#fff" stroke="#b0b0b0" stroke-width=".8"/><circle cx="${x+s*E.r*.1}" cy="${E.y+.6}" r="${pr}" fill="#111"/><circle cx="${x+s*E.r*.1-pr*.32}" cy="${E.y-.7}" r="${pr*.32}" fill="#fff"/>`;
+  let eyes=eye(E.x[0],-1)+eye(E.x[1],1);
+  let behind=S.extra&&S.extra.behind?S.extra.behind(c,d):'',front=S.extra&&S.extra.front?S.extra.front(c,d):'';
+  return `<svg class="mascot-svg" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${t.name}">${defs}${wear('back')}${S.rock?stem:''}${behind}${legs}${arms}${body}${wear('body')}${wear('neck')}${S.rock?'':stem}${eyes}${front}${wear('face')}${wear('hat')}${top}${wear('hand')}</svg>`
 }
 function pkSVG(typeId,outfit={},owned=[]){
   let t=PK_TYPES.find(x=>x.id===typeId)||PK_TYPES[0],c=t.c,d=t.d,id=t.id,rock=id==='rock',big=id==='purple';
-  if(id==='red')return pkSVG2(t,outfit,owned);
+  if(PK_SPEC[id])return pkSVG2(t,outfit,owned);
   // 裝備圖案原本是依舊版身形設計的，依部位微調位置與寬度，讓它們貼合新的身形
   let fit={face:rock?'translate(0 -10)':'translate(101 0) scale(1.27 1) translate(-101 0)',hat:rock?'':'translate(0 8)',
     neck:rock||big?'':'translate(101 0) scale(.82 1) translate(-101 0)',body:rock?'':`translate(101 0) scale(${big?.95:.78} 1) translate(-101 0)`,
