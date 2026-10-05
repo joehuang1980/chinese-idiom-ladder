@@ -350,8 +350,40 @@ function pkEarn(name,amount,recId){
   return w
 }
 // 皮克敏外觀：水滴形的頭往上收成與身體同色的莖、兩側的大眼睛、細長身體與三趾小腳；岩石皮克敏是一整塊多面體岩石
+// 依照參考照片比例重新設計的皮克敏（目前用於紅皮克敏）
+// 比例（以花苞頂端到腳底為 100%）：花苞 19%、莖 29%、頭 27%（高:寬 ≈ 1.45:1，下寬上尖的洋蔥形）、
+// 脖子很短、身體 15%（寬約頭的 6 成）、腿腳 8%；眼睛直徑約頭寬的 1/3，位於頭部由上往下約 4 成處。
+function pkSVG2(t,outfit,owned){
+  let c=t.c,d=t.d,g='pkg-'+t.id,hi=t.hi||'#fff';
+  // 裝備圖案原本依舊版身形設計，依部位縮放與移位，讓它們貼合新身形
+  let fit={face:'translate(101 149) scale(1.15 .9) translate(-101 -133)',hat:'translate(101 137) scale(.8) translate(-101 -105)',
+    neck:'translate(101 191) scale(.5) translate(-101 -163)',body:'translate(101 192) scale(.49 .62) translate(-101 -160)',
+    hand:'translate(121 226) scale(.55) translate(-158 -201)',back:'translate(101 192) scale(.5) translate(-101 -160)',leaf:'translate(-15 3)'};
+  let wear=s=>{let it=PK_ITEMS.find(x=>x.id===outfit[s]);return it&&owned.includes(it.id)?`<g transform="${fit[s]}">${it.svg}</g>`:''};
+  let defs=`<defs><radialGradient id="${g}" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="${hi}" stop-opacity=".55"/><stop offset=".35" stop-color="${c}" stop-opacity="0"/><stop offset="1" stop-color="${d}" stop-opacity=".55"/></radialGradient></defs>`;
+  // 頭頂的花苞（照片中紅皮克敏是白色花苞＋綠色萼片）
+  let top=wear('leaf')||`<g class="leaf" style="transform-origin:103px 51px"><path d="M103 8 C116 8 122 22 121 34 C120 44 112 49 103 49 C94 49 86 44 85 34 C84 22 90 8 103 8Z" fill="#fafafa" stroke="#cfcfcf" stroke-width="1"/><path d="M103 9 C100 22 100 36 103 48" fill="none" stroke="#d6d6d6" stroke-width="1.2"/><path d="M90 16 C88 24 88 32 91 40" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/><path d="M85 38 L91 47 L96 41 L103 50 L110 41 L115 47 L121 38 C121 46 113 52 103 52 C93 52 85 46 85 38Z" fill="#9ccc65" stroke="#689f38" stroke-width="1" stroke-linejoin="round"/></g>`;
+  // 莖：上細下粗，自然流入頭部
+  let stem=`<path d="M101.6 50 C101 70 99 96 93.5 124 L108.5 124 C104 96 103.6 70 104.4 50Z" fill="${c}"/><path d="M101.6 50 C101 70 99 96 94 122 M104.4 50 C103.6 70 104 96 108 122" fill="none" stroke="${d}" stroke-width=".9"/>`;
+  // 頭、脖子、身體是一條連續的輪廓（照片中三者平順相連，沒有接縫）：頭下寬上尖、脖子短而細、身體細長底部圓
+  let shape='M93 122 C85 129 78 140 78 156 C78 170 85 179 91.5 185 C93.5 188 93 193 90.5 197 C86 204 85.5 214 86.5 223 C87.5 230 93.5 233.5 101 233.5 C108.5 233.5 114.5 230 115.5 223 C116.5 214 116 204 111.5 197 C109 193 108.5 188 110.5 185 C117 179 124 170 124 156 C124 140 117 129 109 122 C105 119 97 119 93 122Z';
+  let body=`<path d="${shape}" fill="${c}" stroke="${d}" stroke-width="1"/><path d="${shape}" fill="url(#${g})"/><ellipse cx="89" cy="138" rx="3.5" ry="7" transform="rotate(25 89 138)" fill="#fff" opacity=".35"/><path d="M94 204 C92 211 92 219 93.5 225" fill="none" stroke="#fff" stroke-width="2" opacity=".25" stroke-linecap="round"/>`;
+  // 細手臂＋三根手指（手垂在身體兩側）
+  let hand=(x,y,s)=>`<path d="M${x} ${y} l${-3*s} 3.5 M${x} ${y} l${-.5*s} 4.5 M${x} ${y} l${2*s} 4" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>`;
+  let arms=`<path d="M91 199 C86 205 82.5 214 81 225" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round"/>${hand(81,225,1)}<path d="M111 199 C116 205 119.5 214 121 225" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round"/>${hand(121,225,-1)}`;
+  // 短腿＋三趾腳
+  let foot=(x,s)=>`<path d="M${x} 231 L${x-s*.5} 245" stroke="${c}" stroke-width="4.2" stroke-linecap="round"/><path d="M${x-s*.5} 245 l${-6*s} 4 M${x-s*.5} 245 l${-1*s} 5.5 M${x-s*.5} 245 l${4.5*s} 4" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>`;
+  let legs=foot(95.5,1)+foot(106.5,-1);
+  // 眼睛：大白眼珠在頭的兩側、略為突出，黑色瞳孔
+  let eye=(x,s)=>`<circle cx="${x}" cy="149" r="7.6" fill="#fff" stroke="#b0b0b0" stroke-width=".8"/><circle cx="${x+s*.8}" cy="149.6" r="3.5" fill="#111"/><circle cx="${x+s*.8-1.1}" cy="148.3" r="1.1" fill="#fff"/>`;
+  let eyes=eye(83,-1)+eye(119,1);
+  // 鼻子：眼睛下方中間的小圓錐
+  let nose=`<path d="M96.5 155.5 Q101 151.5 105.5 155.5 L102.2 168 Q101 170 99.8 168Z" fill="${c}" stroke="${d}" stroke-width=".9"/><path d="M98 156.5 Q101 154.5 104 156.5 L101.7 164.5Z" fill="#fff" opacity=".22"/>`;
+  return `<svg class="mascot-svg" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${t.name}">${defs}${wear('back')}${legs}${arms}${body}${wear('body')}${wear('neck')}${stem}${eyes}${nose}${wear('face')}${wear('hat')}${top}${wear('hand')}</svg>`
+}
 function pkSVG(typeId,outfit={},owned=[]){
   let t=PK_TYPES.find(x=>x.id===typeId)||PK_TYPES[0],c=t.c,d=t.d,id=t.id,rock=id==='rock',big=id==='purple';
+  if(id==='red')return pkSVG2(t,outfit,owned);
   // 裝備圖案原本是依舊版身形設計的，依部位微調位置與寬度，讓它們貼合新的身形
   let fit={face:rock?'translate(0 -10)':'translate(101 0) scale(1.27 1) translate(-101 0)',hat:rock?'':'translate(0 8)',
     neck:rock||big?'':'translate(101 0) scale(.82 1) translate(-101 0)',body:rock?'':`translate(101 0) scale(${big?.95:.78} 1) translate(-101 0)`,
