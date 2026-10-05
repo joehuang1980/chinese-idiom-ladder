@@ -322,14 +322,9 @@ const PK_ITEMS=[
 // 每位學生（依姓名）在這台裝置有一個皮克敏與錢包；完成一課得到的金幣會存進錢包。
 const PK_KEY='idiomLadderPikmin';
 const PK_TYPES=[
-  {id:'red',name:'紅皮克敏',desc:'不怕火，力氣很大',c:'#e53935',d:'#b71c1c'},
   {id:'yellow',name:'黃皮克敏',desc:'大耳朵，不怕電',c:'#fdd835',d:'#f9a825'},
-  {id:'blue',name:'藍皮克敏',desc:'會游泳，不怕水',c:'#1e88e5',d:'#1565c0'},
-  {id:'purple',name:'紫皮克敏',desc:'又重又有力氣',c:'#7e57c2',d:'#4527a0'},
-  {id:'white',name:'白皮克敏',desc:'跑得快，紅眼睛',c:'#f5f5f5',d:'#9e9e9e'},
   {id:'rock',name:'岩石皮克敏',desc:'像石頭一樣硬',c:'#5c5c5c',d:'#333333'},
-  {id:'winged',name:'羽翅皮克敏',desc:'有翅膀，會飛',c:'#f48fb1',d:'#d81b60'},
-  {id:'ice',name:'冰皮克敏',desc:'冷冰冰，會結冰',c:'#a8e4ef',d:'#6bb8ca'}
+  {id:'winged',name:'羽翅皮克敏',desc:'有翅膀，會飛',c:'#f48fb1',d:'#d81b60'}
 ];
 const PK_SLOT_NAME={hat:'帽子',face:'臉部',neck:'脖子',body:'衣服',hand:'手上',leaf:'頭頂',back:'背後'};
 function pkAll(){try{let a=JSON.parse(localStorage.getItem(PK_KEY)||'{}');return a&&typeof a==='object'?a:{}}catch(e){return{}}}
@@ -359,19 +354,6 @@ function pkEarn(name,amount,recId){
 //   藍：大白花 22%（比頭還寬）、莖 24%、頭 26%（高:寬 ≈ 1.28，最圓最大）、身體寬約頭的 0.5；眼睛約頭寬 0.26；小嘴巴
 //   岩石：紫花 29%、淺灰色莖 20%、整個身體是一塊多面岩石 46%（寬約等於高）；眼睛小（約岩石寬 0.16），四肢淺灰色細長
 const PK_SPEC={
-  red:{
-    head:[101,153,28,33],body:[101,215,15,18],
-    shape:'M93 122 C85 129 78 140 78 156 C78 170 85 179 91.5 185 C93.5 188 93 193 90.5 197 C86 204 85.5 214 86.5 223 C87.5 230 93.5 233.5 101 233.5 C108.5 233.5 114.5 230 115.5 223 C116.5 214 116 204 111.5 197 C109 193 108.5 188 110.5 185 C117 179 124 170 124 156 C124 140 117 129 109 122 C105 119 97 119 93 122Z',hl:'<ellipse cx="89" cy="138" rx="3.5" ry="7" transform="rotate(25 89 138)" fill="#fff" opacity=".35"/>',
-    bodyHl:'M94 204 C92 211 92 219 93.5 225',
-    stem:['M101.6 50 C101 70 99 96 93.5 124 L108.5 124 C104 96 103.6 70 104.4 50Z','M101.6 50 C101 70 99 96 94 122 M104.4 50 C103.6 70 104 96 108 122'],
-    top:(c,d)=>`<g class="leaf" style="transform-origin:103px 51px"><path d="M103 8 C116 8 122 22 121 34 C120 44 112 49 103 49 C94 49 86 44 85 34 C84 22 90 8 103 8Z" fill="#fafafa" stroke="#cfcfcf" stroke-width="1"/><path d="M103 9 C100 22 100 36 103 48" fill="none" stroke="#d6d6d6" stroke-width="1.2"/><path d="M90 16 C88 24 88 32 91 40" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/><path d="M85 38 L91 47 L96 41 L103 50 L110 41 L115 47 L121 38 C121 46 113 52 103 52 C93 52 85 46 85 38Z" fill="#9ccc65" stroke="#689f38" stroke-width="1" stroke-linejoin="round"/></g>`,leafAt:'translate(-15 3)',
-    eyes:{y:149,x:[83,119],r:7.6},
-    arms:[['M91 199 C86 205 82.5 214 81 225',81,225],['M111 199 C116 205 119.5 214 121 225',121,225]],legs:[95.5,106.5],
-    extra:{front:(c,d)=>`<path d="M96.5 155.5 Q101 151.5 105.5 155.5 L102.2 168 Q101 170 99.8 168Z" fill="${c}" stroke="${d}" stroke-width=".9"/><path d="M98 156.5 Q101 154.5 104 156.5 L101.7 164.5Z" fill="#fff" opacity=".22"/>`},
-    fit:{face:'translate(101 149) scale(1.15 .9) translate(-101 -133)',hat:'translate(101 137) scale(.8) translate(-101 -105)',
-      neck:'translate(101 191) scale(.5) translate(-101 -163)',body:'translate(101 192) scale(.49 .62) translate(-101 -160)',
-      hand:'translate(121 226) scale(.55) translate(-158 -201)',back:'translate(101 192) scale(.5) translate(-101 -160)'}
-  },
   yellow:{
     head:[101,154,27,32],body:[101,214,15,18],
     shape:'M95.5 125 C88 129 80 137 79.5 147 C79 160 82 172 88 179 C90 182 92.5 184 92.5 187 C92.5 190 91 192 89 196 C86.5 202 86 212 87 222 C88 229 94 232.5 101 232.5 C108 232.5 114 229 115 222 C116 212 115.5 202 113 196 C111 192 109.5 190 109.5 187 C109.5 184 112 182 114 179 C120 172 123 160 122.5 147 C122 137 114 129 106.5 125 C104 123.5 98 123.5 95.5 125Z',
@@ -384,19 +366,6 @@ const PK_SPEC={
     fit:{face:'translate(101 151.5) scale(1.13 .85) translate(-101 -133)',hat:'translate(101 139) scale(.8) translate(-101 -105)',
       neck:'translate(101 188) scale(.5) translate(-101 -163)',body:'translate(101 190) scale(.48 .62) translate(-101 -160)',
       hand:'translate(122 226) scale(.55) translate(-158 -201)',back:'translate(101 190) scale(.5) translate(-101 -160)'}
-  },
-  blue:{
-    head:[101,146,30,33],body:[101,212,14,19],
-    shape:'M93.5 118 C86 121 78 130 76.5 141 C75 154 78 164 85 171 C88.5 174.5 92 178 92 182 C92 186 91 189 89.5 193 C87 200 87 212 88 221 C89 228 94.5 231.5 101 231.5 C107.5 231.5 113 228 114 221 C115 212 115 200 112.5 193 C111 189 110 186 110 182 C110 178 113.5 174.5 117 171 C124 164 127 154 125.5 141 C124 130 116 121 108.5 118 C105 116.5 97 116.5 93.5 118Z',
-    hl:'<ellipse cx="87" cy="131" rx="4" ry="8" transform="rotate(35 87 131)" fill="#fff" opacity=".35"/>',bodyHl:'M94.5 200 C92.5 207 92.5 216 94 223',
-    stem:['M93.5 120 C93.5 95 90 70 84.6 45 L87.4 44 C95 68 108.5 94 108.5 120Z','M93.5 118 C93.5 95 90 70 84.6 45 M87.4 44 C95 68 108.5 94 108.5 118'],
-    top:(c,d)=>`<g class="leaf" style="transform-origin:86px 44px"><g transform="translate(84 34) rotate(-12) scale(1 .78)">${[0,72,144,216,288].map(a=>`<ellipse cx="0" cy="-20" rx="13.5" ry="20.5" transform="rotate(${a})" fill="#fafafa" stroke="#d0d0d0" stroke-width="1"/>`).join("")}<path d="M0 -6 L3 -2 L7 0 L3 2 L0 7 L-3 2 L-7 0 L-3 -2Z" fill="#8bc34a" stroke="#558b2f" stroke-width=".8"/><circle r="2.6" fill="#cddc39"/></g></g>`,leafAt:'translate(-32 -4)',
-    eyes:{y:147.5,x:[81.5,120.5],r:9},
-    arms:[['M90.5 194 C85.5 201 82.5 211 81 222',81,222],['M111.5 194 C116.5 201 119.5 211 121 222',121,222]],legs:[96,106],
-    extra:{front:()=>'<path d="M97.5 166 Q101 163.5 104.5 166 Q101 169 97.5 166Z" fill="#0b2f63"/>'},
-    fit:{face:'translate(101 147.5) scale(1.3 .95) translate(-101 -133)',hat:'translate(101 130) scale(.86) translate(-101 -105)',
-      neck:'translate(101 185) scale(.5) translate(-101 -163)',body:'translate(101 187) scale(.44 .64) translate(-101 -160)',
-      hand:'translate(121 222) scale(.55) translate(-158 -201)',back:'translate(101 187) scale(.48) translate(-101 -160)'}
   },
   rock:{
     rock:true,head:[101,182,56,58],limb:'#d9d9d9',limbD:'#a6a6a6',
@@ -438,13 +407,13 @@ function pkSVG2(t,outfit,owned){
   return `<svg class="mascot-svg" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${t.name}">${defs}${wear('back')}${S.rock?stem:''}${behind}${legs}${arms}${body}${wear('body')}${wear('neck')}${S.rock?'':stem}${eyes}${front}${wear('face')}${wear('hat')}${top}${wear('hand')}</svg>`
 }
 function pkSVG(typeId,outfit={},owned=[]){
-  let t=PK_TYPES.find(x=>x.id===typeId)||PK_TYPES[0],c=t.c,d=t.d,id=t.id,rock=id==='rock',big=id==='purple';
+  let t=PK_TYPES.find(x=>x.id===typeId)||PK_TYPES[0],c=t.c,d=t.d,id=t.id,rock=id==='rock';
   if(PK_SPEC[id])return pkSVG2(t,outfit,owned);
   // 裝備圖案原本是依舊版身形設計的，依部位微調位置與寬度，讓它們貼合新的身形
   let fit={face:rock?'translate(0 -10)':'translate(101 0) scale(1.27 1) translate(-101 0)',hat:rock?'':'translate(0 8)',
-    neck:rock||big?'':'translate(101 0) scale(.82 1) translate(-101 0)',body:rock?'':`translate(101 0) scale(${big?.95:.78} 1) translate(-101 0)`,
+    neck:rock?'':'translate(101 0) scale(.82 1) translate(-101 0)',body:rock?'':'translate(101 0) scale(.78 1) translate(-101 0)',
     hand:rock?'translate(-10 4)':'translate(-28 3)'};
-  let wear=s=>{let it=PK_ITEMS.find(x=>x.id===outfit[s]);if(!it||!owned.includes(it.id))return'';if(it.body2d&&!rock)return `<g transform="translate(101 ${big?208:205}) scale(${(big?17:14)/44} ${-(big?21:24)/41}) translate(-101 -137)">${it.svg}</g>`;return fit[s]&&!it.wrap?`<g transform="${fit[s]}">${it.svg}</g>`:it.svg};
+  let wear=s=>{let it=PK_ITEMS.find(x=>x.id===outfit[s]);if(!it||!owned.includes(it.id))return'';if(it.body2d&&!rock)return `<g transform="translate(101 205) scale(${14/44} ${-24/41}) translate(-101 -137)">${it.svg}</g>`;return fit[s]&&!it.wrap?`<g transform="${fit[s]}">${it.svg}</g>`:it.svg};
   let limb=rock?'#d6d6d6':c,limbD=rock?'#a8a8a8':d,stemC=rock?'#d6d6d6':c;
   let leaf=wear('leaf')||'<g class="leaf"><path d="M118 48 C121 22 148 8 172 5 C168 30 146 50 118 48Z" fill="#7cc242" stroke="#4c8c2b" stroke-width="1.5"/><path d="M118 48 C134 34 150 20 170 7" fill="none" stroke="#4c8c2b" stroke-width="1.2"/></g>';
   let stem=`<path d="M95.5 112 C95 84 104 62 116 49 C117.5 47.5 120.5 48.5 119.3 50.8 C110 64 106.5 84 107 112Z" fill="${stemC}"/><path d="M96 101 C95 84 104 62 116 49 M119.3 50.8 C110 64 106 84 106.3 101" fill="none" stroke="${rock?'#a8a8a8':d}" stroke-width="1.1"/>`;
@@ -453,7 +422,7 @@ function pkSVG(typeId,outfit={},owned=[]){
   let legs=rock?foot(90,1).replace(/226/,'222')+foot(112,-1).replace(/226/,'222'):foot(96,1)+foot(106,-1);
   // 手：細手臂＋三根小指頭
   let arm=(x0,y0,x1,y1,cx,cy)=>`<path d="M${x0} ${y0} Q${cx} ${cy} ${x1} ${y1}" fill="none" stroke="${limb}" stroke-width="5" stroke-linecap="round"/><path d="M${x1} ${y1} l${x1<101?-5:5} 4 M${x1} ${y1} l0 6 M${x1} ${y1} l${x1<101?4:-4} 5" stroke="${limb}" stroke-width="2.6" stroke-linecap="round"/>`;
-  let arms=rock?arm(68,180,54,206,58,190)+arm(134,180,148,206,144,190):big?arm(86,190,68,206,74,196)+arm(116,190,134,206,128,196):arm(94,186,73,204,80,192)+arm(108,186,129,204,122,192);
+  let arms=rock?arm(68,180,54,206,58,190)+arm(134,180,148,206,144,190):arm(94,186,73,204,80,192)+arm(108,186,129,204,122,192);
   let body,head,eyes,front='',behind='';
   if(rock){
     body=`<polygon points="101,96 126,104 140,132 138,196 120,226 82,226 64,196 62,132 76,104" fill="${c}" stroke="${d}" stroke-width="1.5" stroke-linejoin="round"/>
@@ -461,18 +430,13 @@ function pkSVG(typeId,outfit={},owned=[]){
     head='';
     eyes=`<circle cx="88" cy="124" r="8" fill="#fff" stroke="#555" stroke-width="1"/><circle cx="114" cy="124" r="8" fill="#fff" stroke="#555" stroke-width="1"/><circle cx="88" cy="125" r="3.6" fill="#222"/><circle cx="114" cy="125" r="3.6" fill="#222"/>`;
   }else{
-    let w=big?42:37;
-    body=big?`<path d="M90 166 C90 174 90 178 86 184 C76 194 72 208 76 218 C80 228 90 231 101 231 C112 231 122 228 126 218 C130 208 126 194 116 184 C112 178 112 174 112 166Z" fill="${c}" stroke="${d}" stroke-width="1.3"/>`
-      :`<path d="M93 166 C93 172 95 177 95 181 C89 191 85 204 87 215 C89 225 94 229 101 229 C108 229 113 225 115 215 C117 204 113 191 107 181 C107 177 109 172 109 166Z" fill="${c}" stroke="${d}" stroke-width="1.3"/><path d="M97 186 C93 196 92 208 94 216" fill="none" stroke="#fff" stroke-width="3" opacity=".25" stroke-linecap="round"/>`;
+    let w=37;
+    body=`<path d="M93 166 C93 172 95 177 95 181 C89 191 85 204 87 215 C89 225 94 229 101 229 C108 229 113 225 115 215 C117 204 113 191 107 181 C107 177 109 172 109 166Z" fill="${c}" stroke="${d}" stroke-width="1.3"/><path d="M97 186 C93 196 92 208 94 216" fill="none" stroke="#fff" stroke-width="3" opacity=".25" stroke-linecap="round"/>`;
     head=`<path d="M96 100 C92 112 ${101-w} 120 ${101-w} 141 C${101-w} 160 ${101-w+16} 170 101 170 C${101+w-16} 170 ${101+w} 160 ${101+w} 141 C${101+w} 120 110 112 106 100Z" fill="${c}" stroke="${d}" stroke-width="1.3"/><ellipse cx="86" cy="124" rx="7" ry="12" transform="rotate(28 86 124)" fill="#fff" opacity=".3"/>`;
-    if(id==='ice')head+=`<path d="M96 100 L80 128 L101 122Z M106 100 L122 128 L101 122Z" fill="#fff" opacity=".35"/><path d="M${101-w} 141 L101 152 L${101+w} 141 L101 170Z" fill="${d}" opacity=".18"/>`;
-    let pupil=id==='white'?'#d32f2f':'#111',ex=big?78:81,ex2=big?124:121;
+    let pupil='#111',ex=81,ex2=121;
     eyes=`<circle cx="${ex}" cy="136" r="10.5" fill="#fff" stroke="#9e9e9e" stroke-width="1"/><circle cx="${ex2}" cy="136" r="10.5" fill="#fff" stroke="#9e9e9e" stroke-width="1"/><circle cx="${ex-1.5}" cy="137" r="5.4" fill="${pupil}"/><circle cx="${ex2+1.5}" cy="137" r="5.4" fill="${pupil}"/><circle cx="${ex-3}" cy="135" r="1.6" fill="#fff"/><circle cx="${ex2}" cy="135" r="1.6" fill="#fff"/>`;
   }
-  if(id==='red')front=`<path d="M96 143 Q101 139 106 143 L102.5 156 Q101 158.5 99.5 156Z" fill="${d}"/><path d="M98.5 144 L100 152" stroke="#fff" stroke-width="1.2" opacity=".35" stroke-linecap="round"/>`;
   if(id==='yellow')behind=`<path d="M70 128 Q52 116 28 108 Q42 132 70 152Z" fill="${c}" stroke="${d}" stroke-width="1.3" stroke-linejoin="round"/><path d="M132 128 Q150 116 174 108 Q160 132 132 152Z" fill="${c}" stroke="${d}" stroke-width="1.3" stroke-linejoin="round"/><path d="M68 132 Q52 122 38 116 Q50 132 68 144Z M134 132 Q150 122 164 116 Q152 132 134 144Z" fill="${d}" opacity=".35"/>`;
-  if(id==='blue')front=`<path d="M96 154 Q101 151 106 154 Q101 157.5 96 154Z" fill="#0d3c7a"/>`;
-  if(id==='purple')front=`<path d="M94 104 Q90 94 93 86 M101 102 Q100 92 103 84 M108 104 Q111 95 115 90" fill="none" stroke="${d}" stroke-width="2.2" stroke-linecap="round"/>`;
   if(id==='winged')behind=`<ellipse cx="62" cy="150" rx="24" ry="11" transform="rotate(-30 62 150)" fill="#fff" opacity=".7" stroke="#f8bbd0"/><ellipse cx="140" cy="150" rx="24" ry="11" transform="rotate(30 140 150)" fill="#fff" opacity=".7" stroke="#f8bbd0"/>`;
   return `<svg class="mascot-svg" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${t.name}">${wear('back')}${rock?stem:''}${behind}
 ${legs}${arms}${body}${wear('body')}${wear('neck')}${head}${rock?'':stem}${eyes}${front}${wear('face')}${wear('hat')}${leaf}${wear('hand')}</svg>`
@@ -485,7 +449,7 @@ function pkSay(name){
 }
 // 成果頁的小卡：顯示這次得到的金幣與目前可用金幣
 function pkRewardCard(w,got){
-  return `<div class="mascot-home"><div class="mascot-mini">${pkSVG(w.type||'red',w.outfit,w.owned)}</div><div><b style="font-size:20px">🪙 這次得到 ${got} 枚金幣！</b><br>目前可用金幣：<b>${pkBalance(w)}</b> 枚<br><button class="primary" id="goPikmin" style="margin-top:8px">🌱 ${w.type?'去幫皮克敏買裝備':'選一隻自己的皮克敏'}</button></div></div>`
+  return `<div class="mascot-home"><div class="mascot-mini">${pkSVG(w.type||'winged',w.outfit,w.owned)}</div><div><b style="font-size:20px">🪙 這次得到 ${got} 枚金幣！</b><br>目前可用金幣：<b>${pkBalance(w)}</b> 枚<br><button class="primary" id="goPikmin" style="margin-top:8px">🌱 ${w.type?'去幫皮克敏買裝備':'選一隻自己的皮克敏'}</button></div></div>`
 }
 function pikminRoom(name){
   mode='pikmin';prog();student=name;updateScore();badge.textContent='南一國小成語學習';
