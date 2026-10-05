@@ -313,6 +313,7 @@ const PK_ITEMS=[
 {id:'medal',price:300,name:'闖關金牌',icon:'🥇',slot:'neck',svg:'<path d="M88 159 L101 180 L114 159" fill="none" stroke="#1e88e5" stroke-width="5"/><circle cx="101" cy="186" r="10" fill="#ffc107" stroke="#ff8f00" stroke-width="2"/><path d="M101 180 l2 4.2 4.6 .5 -3.4 3.1 1 4.5 -4.2 -2.4 -4.2 2.4 1 -4.5 -3.4 -3.1 4.6 -.5Z" fill="#fff8e1"/>'},
 {id:'cape',price:350,name:'英雄披風',icon:'🦸',slot:'back',svg:'<path d="M80 160 L122 160 L148 234 Q101 250 54 234Z" fill="#d32f2f" stroke="#b71c1c" stroke-width="1.5"/>'},
 {id:'gradcap',price:400,name:'博士帽',icon:'🎓',slot:'hat',svg:'<path d="M80 92 L80 106 Q101 115 122 106 L122 92Z" fill="#37474f"/><path d="M101 78 L142 91 L101 104 L60 91Z" fill="#263238" stroke="#111" stroke-width="1"/><path d="M101 91 L140 94 L140 112" fill="none" stroke="#ffc107" stroke-width="2.2"/><circle cx="140" cy="114" r="3.5" fill="#ffc107"/>'},
+{id:'dotscarf',price:450,name:'水玉頭巾',icon:'🧕',slot:'hat',wrap:true,svg:'<ellipse cx="101" cy="137" rx="44" ry="41" fill="none" stroke="#92cfdc" stroke-width="13"/><ellipse cx="101" cy="137" rx="41" ry="38" fill="none" stroke="#fff" stroke-width="3.6" stroke-dasharray="0 11" stroke-linecap="round"/><ellipse cx="101" cy="137" rx="47" ry="44" fill="none" stroke="#fff" stroke-width="3.6" stroke-dasharray="0 11" stroke-dashoffset="5.5" stroke-linecap="round"/><path d="M98 96 C90 82 76 72 70 76 C66 84 82 96 98 99Z M104 96 C112 82 126 72 132 76 C136 84 120 96 104 99Z" fill="#92cfdc" stroke="#6fb3c2" stroke-width="1"/><circle cx="80" cy="82" r="2.4" fill="#fff"/><circle cx="88" cy="91" r="2.4" fill="#fff"/><circle cx="122" cy="82" r="2.4" fill="#fff"/><circle cx="114" cy="91" r="2.4" fill="#fff"/><ellipse cx="101" cy="98" rx="7" ry="6" fill="#92cfdc" stroke="#6fb3c2" stroke-width="1"/>'},
 {id:'crown',price:500,name:'國王皇冠',icon:'👑',slot:'hat',svg:'<path d="M78 105 L76 82 L89 93 L101 74 L113 93 L126 82 L124 105Z" fill="#ffd54f" stroke="#f9a825" stroke-width="2" stroke-linejoin="round"/><circle cx="101" cy="97" r="4" fill="#e53935"/><circle cx="86" cy="99" r="3" fill="#1e88e5"/><circle cx="116" cy="99" r="3" fill="#43a047"/>'},
 {id:'wings',price:600,name:'彩虹翅膀',icon:'🌈',slot:'back',svg:'<defs><linearGradient id="pkRainbow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a80"/><stop offset=".25" stop-color="#ffd180"/><stop offset=".5" stop-color="#ccff90"/><stop offset=".75" stop-color="#80d8ff"/><stop offset="1" stop-color="#b388ff"/></linearGradient></defs><path d="M78 176 C44 132 8 148 18 186 C26 214 60 208 78 194Z" fill="url(#pkRainbow)" stroke="#fff" stroke-width="2"/><path d="M124 176 C158 132 194 148 184 186 C176 214 142 208 124 194Z" fill="url(#pkRainbow)" stroke="#fff" stroke-width="2"/>'}
 ];
@@ -358,6 +359,7 @@ function pkEarn(name,amount,recId){
 //   岩石：紫花 29%、淺灰色莖 20%、整個身體是一塊多面岩石 46%（寬約等於高）；眼睛小（約岩石寬 0.16），四肢淺灰色細長
 const PK_SPEC={
   red:{
+    head:[101,153,28,33],
     shape:'M93 122 C85 129 78 140 78 156 C78 170 85 179 91.5 185 C93.5 188 93 193 90.5 197 C86 204 85.5 214 86.5 223 C87.5 230 93.5 233.5 101 233.5 C108.5 233.5 114.5 230 115.5 223 C116.5 214 116 204 111.5 197 C109 193 108.5 188 110.5 185 C117 179 124 170 124 156 C124 140 117 129 109 122 C105 119 97 119 93 122Z',hl:'<ellipse cx="89" cy="138" rx="3.5" ry="7" transform="rotate(25 89 138)" fill="#fff" opacity=".35"/>',
     bodyHl:'M94 204 C92 211 92 219 93.5 225',
     stem:['M101.6 50 C101 70 99 96 93.5 124 L108.5 124 C104 96 103.6 70 104.4 50Z','M101.6 50 C101 70 99 96 94 122 M104.4 50 C103.6 70 104 96 108 122'],
@@ -370,6 +372,7 @@ const PK_SPEC={
       hand:'translate(121 226) scale(.55) translate(-158 -201)',back:'translate(101 192) scale(.5) translate(-101 -160)'}
   },
   yellow:{
+    head:[101,154,27,32],
     shape:'M95.5 125 C88 129 80 137 79.5 147 C79 160 82 172 88 179 C90 182 92.5 184 92.5 187 C92.5 190 91 192 89 196 C86.5 202 86 212 87 222 C88 229 94 232.5 101 232.5 C108 232.5 114 229 115 222 C116 212 115.5 202 113 196 C111 192 109.5 190 109.5 187 C109.5 184 112 182 114 179 C120 172 123 160 122.5 147 C122 137 114 129 106.5 125 C104 123.5 98 123.5 95.5 125Z',
     hl:'<ellipse cx="88" cy="139" rx="3.5" ry="7" transform="rotate(30 88 139)" fill="#fff" opacity=".4"/>',bodyHl:'M93.5 203 C91.5 210 91.5 218 93 224',
     stem:['M95.5 127 C95.5 100 89 76 70.5 61 L73.5 59 C93 74 106.5 98 106.5 127Z','M95.5 125 C95.5 100 89 76 70.5 61 M73.5 59 C93 74 106.5 98 106.5 125'],
@@ -382,6 +385,7 @@ const PK_SPEC={
       hand:'translate(122 226) scale(.55) translate(-158 -201)',back:'translate(101 190) scale(.5) translate(-101 -160)'}
   },
   blue:{
+    head:[101,146,30,33],
     shape:'M93.5 118 C86 121 78 130 76.5 141 C75 154 78 164 85 171 C88.5 174.5 92 178 92 182 C92 186 91 189 89.5 193 C87 200 87 212 88 221 C89 228 94.5 231.5 101 231.5 C107.5 231.5 113 228 114 221 C115 212 115 200 112.5 193 C111 189 110 186 110 182 C110 178 113.5 174.5 117 171 C124 164 127 154 125.5 141 C124 130 116 121 108.5 118 C105 116.5 97 116.5 93.5 118Z',
     hl:'<ellipse cx="87" cy="131" rx="4" ry="8" transform="rotate(35 87 131)" fill="#fff" opacity=".35"/>',bodyHl:'M94.5 200 C92.5 207 92.5 216 94 223',
     stem:['M93.5 120 C93.5 95 90 70 84.6 45 L87.4 44 C95 68 108.5 94 108.5 120Z','M93.5 118 C93.5 95 90 70 84.6 45 M87.4 44 C95 68 108.5 94 108.5 118'],
@@ -394,7 +398,7 @@ const PK_SPEC={
       hand:'translate(121 222) scale(.55) translate(-158 -201)',back:'translate(101 187) scale(.48) translate(-101 -160)'}
   },
   rock:{
-    rock:true,limb:'#d9d9d9',limbD:'#a6a6a6',
+    rock:true,head:[101,182,56,58],limb:'#d9d9d9',limbD:'#a6a6a6',
     shape:'M101 127 L142 153 L152 192 L146 212 L118 236 L84 236 L56 212 L50 192 L60 153Z',
     facets:[['101,127 78,150 101,158 124,150','#fff',.13],['101,127 60,153 78,150','#fff',.22],['101,127 142,153 124,150','#000',.1],
       ['60,153 78,150 76,190 50,192','#fff',.08],['142,153 124,150 126,190 152,192','#000',.18],['76,190 101,196 126,190 118,236 84,236','#000',.1],
@@ -412,7 +416,7 @@ function pkSVG2(t,outfit,owned){
   let S=PK_SPEC[t.id],c=t.c,d=t.d,g='pkg-'+t.id,hi=t.hi||'#fff',limb=S.limb||c,limbD=S.limbD||d;
   // 裝備圖案原本依舊版身形設計，依部位縮放與移位，讓它們貼合新身形
   let fit={...S.fit,leaf:S.leafAt};
-  let wear=s=>{let it=PK_ITEMS.find(x=>x.id===outfit[s]);return it&&owned.includes(it.id)?`<g transform="${fit[s]}">${it.svg}</g>`:''};
+  let wear=s=>{let it=PK_ITEMS.find(x=>x.id===outfit[s]);if(!it||!owned.includes(it.id))return'';let[hx,hy,hr,hh]=S.head,f=it.wrap?`translate(${hx} ${hy}) scale(${hr/44} ${hh/41}) translate(-101 -137)`:fit[s];return `<g transform="${f}">${it.svg}</g>`};
   let defs=`<defs><radialGradient id="${g}" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="${hi}" stop-opacity=".55"/><stop offset=".35" stop-color="${c}" stop-opacity="0"/><stop offset="1" stop-color="${d}" stop-opacity=".55"/></radialGradient></defs>`;
   let top=wear('leaf')||S.top(c,d);
   let stem=`<path d="${S.stem[0]}" fill="${S.rock?limb:c}"/><path d="${S.stem[1]}" fill="none" stroke="${S.rock?limbD:d}" stroke-width=".9"/>`;
@@ -439,7 +443,7 @@ function pkSVG(typeId,outfit={},owned=[]){
   let fit={face:rock?'translate(0 -10)':'translate(101 0) scale(1.27 1) translate(-101 0)',hat:rock?'':'translate(0 8)',
     neck:rock||big?'':'translate(101 0) scale(.82 1) translate(-101 0)',body:rock?'':`translate(101 0) scale(${big?.95:.78} 1) translate(-101 0)`,
     hand:rock?'translate(-10 4)':'translate(-28 3)'};
-  let wear=s=>{let it=PK_ITEMS.find(x=>x.id===outfit[s]);if(!it||!owned.includes(it.id))return'';return fit[s]?`<g transform="${fit[s]}">${it.svg}</g>`:it.svg};
+  let wear=s=>{let it=PK_ITEMS.find(x=>x.id===outfit[s]);if(!it||!owned.includes(it.id))return'';return fit[s]&&!it.wrap?`<g transform="${fit[s]}">${it.svg}</g>`:it.svg};
   let limb=rock?'#d6d6d6':c,limbD=rock?'#a8a8a8':d,stemC=rock?'#d6d6d6':c;
   let leaf=wear('leaf')||'<g class="leaf"><path d="M118 48 C121 22 148 8 172 5 C168 30 146 50 118 48Z" fill="#7cc242" stroke="#4c8c2b" stroke-width="1.5"/><path d="M118 48 C134 34 150 20 170 7" fill="none" stroke="#4c8c2b" stroke-width="1.2"/></g>';
   let stem=`<path d="M95.5 112 C95 84 104 62 116 49 C117.5 47.5 120.5 48.5 119.3 50.8 C110 64 106.5 84 107 112Z" fill="${stemC}"/><path d="M96 101 C95 84 104 62 116 49 M119.3 50.8 C110 64 106 84 106.3 101" fill="none" stroke="${rock?'#a8a8a8':d}" stroke-width="1.1"/>`;

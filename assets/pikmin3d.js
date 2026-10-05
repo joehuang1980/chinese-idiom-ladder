@@ -93,7 +93,7 @@
     root.userData.wings=wings;
     // 裝備位置：帽子戴在頭頂偏後（前上方是大眼睛）；腮紅、嘴巴在眼睛下方；脖子在頭和身體交接處
     root.userData.anchors={hat:{p:V(0,.3,-.1),s:.95,rx:-.38},eyes:E,eyeR:.2,eyeD:.13,face:[head],cheeks:[[.31,-.06],[-.31,-.06]],mouth:[0,-.12],
-      trunk:[head,bodyM],neckY:-.43,body:[-.43,-.8],hand:{p:V(.31,-.7,.08),s:.75,rx:.6},leaf:{obj:bud,p:tip,tan,s:1},back:{y0:-.4,y1:-.9,r1:.1,s:.85}};
+      wrap:{c:V(0,0,0),z:.02,mesh:[head],t:.11},trunk:[head,bodyM],neckY:-.43,body:[-.43,-.8],hand:{p:V(.31,-.7,.08),s:.75,rx:.6},leaf:{obj:bud,p:tip,tan,s:1},back:{y0:-.4,y1:-.9,r1:.1,s:.85}};
     return root;
   }
 
@@ -156,7 +156,7 @@
       [[-.1,.09],[0,.12],[.1,.08]].forEach(([dx,dz])=>root.add(limb(ft,[ft[0]+dx,ft[1]-.04,ft[2]+dz],.025,ym)));
     });
     root.userData.anchors={hat:{p:V(0,.33,0),s:1.05,rx:0},eyes:E,eyeR:.11,eyeD:.135,face:[trunk],cheeks:[[.29,-.12],[-.29,-.12]],mouth:[0,-.16],
-      trunk:[trunk],neckY:-.64,body:[-.6,-1.27],hand:{p:V(.64,-1.15,.02),s:1,rx:.2},leaf:{obj:bud,p:tip,tan,s:1.75},back:{y0:-.62,y1:-1.5,r1:.14,s:1}};
+      wrap:{c:V(0,-.02,0),z:.04,rx:.5,ry:.53,t:.11},trunk:[trunk],neckY:-.64,body:[-.6,-1.27],hand:{p:V(.64,-1.15,.02),s:1,rx:.2},leaf:{obj:bud,p:tip,tan,s:1.75},back:{y0:-.62,y1:-1.5,r1:.14,s:1}};
     return root;
   }
 
@@ -222,7 +222,7 @@
     });
     // 岩石沒有脖子：脖子類裝備圍在眼睛下方，衣服包住岩石中下段
     root.userData.anchors={hat:{p:V(0,top-.05,0),s:.8,rx:0},eyes:E,eyeR:.069,eyeD:.088,face:[rock],cheeks:[[.27,top-.27*H],[-.27,top-.27*H]],mouth:[0,top-.29*H],
-      trunk:[rock],neckY:top-.38*H,body:[top-.42*H,box.min.y+.1*H],hand:{p:V(.58,ay-.2,.06),s:.75,rx:.2},leaf:{obj:bud,p:tip,tan,s:.75},back:{y0:top-.3*H,y1:box.min.y-.08,r1:.12,s:.78}};
+      wrap:{c:V(0,(top+box.min.y)/2,0),z:.06,mesh:[rock],t:.16,z:.02},trunk:[rock],neckY:top-.38*H,body:[top-.42*H,box.min.y+.1*H],hand:{p:V(.58,ay-.2,.06),s:.75,rx:.2},leaf:{obj:bud,p:tip,tan,s:.75},back:{y0:top-.3*H,y1:box.min.y-.08,r1:.12,s:.78}};
     return root;
   }
   /* 3D 裝備：顏色與造型對照商店的平面圖示。每隻皮克敏在 userData.anchors 記錄裝備位置，
@@ -313,6 +313,36 @@
       const ctr=new T.Mesh(new T.SphereGeometry(.1,20,14),mat(0xffc107,{roughness:.6}));ctr.scale.z=.55;ctr.position.z=.03;head.add(ctr);
       g.add(limb([0,0,0],[0,.08,0],.025,mat(0x43a047)));return g}
   };
+  // 水玉頭巾：淺藍色白點的布，蓬蓬地圍成一圈包住頭（岩石皮克敏是包住整顆岩石），頭頂打一個蝴蝶結
+  let dotTex=null;
+  function dots(){
+    if(dotTex)return dotTex;
+    const cv=document.createElement('canvas');cv.width=cv.height=128;const x=cv.getContext('2d');
+    x.fillStyle='#92cfdc';x.fillRect(0,0,128,128);x.fillStyle='#fff';
+    [[64,64],[0,0],[128,0],[0,128],[128,128]].forEach(([a,b])=>{x.beginPath();x.arc(a,b,17,0,Math.PI*2);x.fill()});
+    dotTex=new T.CanvasTexture(cv);dotTex.wrapS=dotTex.wrapT=T.RepeatWrapping;return dotTex;
+  }
+  const uvScale=(g,su,sv)=>{const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*su,uv.getY(i)*sv);return g};
+  function dotScarf(W,G){
+    const m=new T.MeshStandardMaterial({map:dots(),roughness:.85}),n=72,tile=W.t*2.1,c=W.c,pts=[];
+    // 在圈所在的平面上，從四周往中心打射線量出輪廓，再平滑
+    let rs=[];
+    for(let i=0;i<n;i++){const a=i/n*Math.PI*2,d=V(Math.cos(a),Math.sin(a),0);let r=Math.hypot(W.rx*d.x,W.ry*d.y)||.5;
+      if(W.mesh){ray.set(V(c.x+d.x*4,c.y+d.y*4,W.z),d.clone().negate());const h=ray.intersectObjects(W.mesh,false)[0];if(h)r=Math.hypot(h.point.x-c.x,h.point.y-c.y)}
+      else r=1/Math.sqrt((d.x/W.rx)**2+(d.y/W.ry)**2);rs.push(r)}
+    for(let k=0;k<4;k++)rs=rs.map((r,i)=>(rs[(i+n-1)%n]+2*r+rs[(i+1)%n])/4);
+    rs.forEach((r,i)=>{const a=i/n*Math.PI*2;pts.push(V(c.x+Math.cos(a)*(r+W.t*.9),c.y+Math.sin(a)*(r+W.t*.9),W.z+W.t*.25*Math.sin(a*5)))});
+    const cur=new T.CatmullRomCurve3(pts,true),segs=160,rad=18,L=cur.getLength();
+    const g=new T.TubeGeometry(cur,segs,1,rad,true),pos=g.attributes.position,P=new T.Vector3(),Q=new T.Vector3();
+    // 布皺皺的、一段一段蓬起來
+    for(let i=0;i<=segs;i++){const t=i/segs;cur.getPointAt(t%1,P);const r=W.t*(1+.15*Math.sin(t*Math.PI*2*10)+.08*Math.sin(t*Math.PI*2*4+1));
+      for(let j=0;j<=rad;j++){const k=i*(rad+1)+j;Q.fromBufferAttribute(pos,k).sub(P).multiplyScalar(r*(1+.05*Math.sin(j/rad*Math.PI*6+i))).add(P);pos.setXYZ(k,Q.x,Q.y,Q.z)}}
+    g.computeVertexNormals();uvScale(g,Math.round(L/tile),Math.max(2,Math.round(Math.PI*2*W.t/tile)));G.add(new T.Mesh(g,m));
+    // 頭頂的結和兩片像兔耳朵的布
+    const top=cur.getPointAt(.25).add(V(0,W.t*.35,W.t*.3)),knot=new T.Mesh(uvScale(new T.SphereGeometry(W.t*.85,24,16),3,2),m);knot.scale.set(1.15,.9,.9);knot.position.copy(top);G.add(knot);
+    [-1,1].forEach(k=>{const eg=uvScale(new T.SphereGeometry(1,24,16),3,3);eg.scale(W.t*1.5,W.t*3,W.t*.32);eg.translate(0,W.t*2.7,0);
+      const ear=new T.Mesh(eg,m);ear.position.copy(top);ear.rotation.set(-.2,k*.3,-k*.85);G.add(ear)});
+  }
   function addOutfit(root,outfit){
     const A=root.userData.anchors;if(!A)return;
     if(root.userData.gear)root.remove(root.userData.gear);
@@ -320,6 +350,7 @@
     A.leaf.obj.visible=true;const nat=root.userData.natWings||(root.userData.natWings=root.userData.wings||[]);nat.forEach(w=>w.visible=true);root.userData.wings=nat.slice();
     const o=outfit||{};root.userData.spin=null;
     // 帽子
+    if(o.hat==='dotscarf')dotScarf(A.wrap,G);
     if(HATS[o.hat]){const h=HATS[o.hat]();h.position.copy(A.hat.p);h.scale.setScalar(A.hat.s);h.rotation.x=A.hat.rx||0;G.add(h)}
     // 臉部
     if(o.face==='glasses'||o.face==='sunglasses'){const sun=o.face==='sunglasses',r=A.eyeR,rim=[];
